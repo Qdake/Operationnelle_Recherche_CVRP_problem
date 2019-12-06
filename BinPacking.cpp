@@ -2,6 +2,10 @@
 #include <vector>
 #include <cassert>
 #include <algorithm>
+#include <string>
+#include <sstream>
+#include "ilcplex/ilocplex.h"
+
 
 #define DEBUG
 class Client{
@@ -13,7 +17,9 @@ class Client{
         objectCount++;
         this->number = objectCount;
     };
-    ~Client(){};
+    ~Client(){
+        objectCount = objectCount - 1;
+    };
     //print
     std::ostream& print(std::ostream& out)const{
         out<<this->demand;
@@ -29,25 +35,31 @@ class Car{
     public:
     static int objectCount;
     int number;
-    float capacity;
+    float Q; //capacite
     float demand;
     std::vector<Client> clients;
     //constructor
-    Car(float capacity_):capacity(capacity_),demand(0){
+    Car(float Q_):Q(Q_),demand(0){
         objectCount++;
         number = objectCount;
     };
     //destructor
     ~Car(){
+        objectCount = objectCount - 1;
     };
     //add_client
     bool add_client(const Client& client){
-        if (client.demand + this->demand > this->capacity)
+        if (client.demand + this->demand > this->Q)
             return false;
         this->demand += client.demand;
         this->clients.push_back(client);
         return true;
     };
+    // clear_clients
+    void clear_clients(){
+        this->clients.clear();
+        this->demand = 0;
+    }
     //print
     std::ostream& print(std::ostream& out)const{
         out<<"car "<<this->number<<" :";
@@ -85,22 +97,169 @@ bool first_fit_decreasing(std::vector<Car>& cars,std::vector<Client>& clients){
     };
     return true;
 }
+bool plne(std::vector<Car>& cars, std::vector<Client>& clients){
+    int n = Client::objectCount;  // nb client
+    int k = Car::objectCount;   // nb vehicle
+///////////////////
+/////// Cplex initialization
+////////////////////
+    IloEnv env;
+    IloModel model(env);
+///////////////////////
+/////  Var
+//////////////////////
+    std::vector<std::vector<IloNumVar>> x;
+    x.resize(n);               //x[i][j] client i in car j
+    for (int i{0}; i<Client::objectCount; i++){
+        x[i].resize(k);
+        std::ostringstream varname;
+        for (int j{0}; j<k; j++){
+            x[i][j]=IloNumVar(env, 0.0, 1.0, ILOINT);
+            varname.str("");
+            varname<<"x["<<i<<"]["<<j<<"]";
+            x[i][j].setName(varname.str().c_str());
+        };
+    };
+/////////////////////////
+//////// CST
+/////////////////////////
+    IloRangeArray CC(env);
+    int nbcst{0};
+    // Cst capacity :   sum(x_i_j,i=1..n)<=Q     for j in 1..k
+    for (int j{0}; j<k; j++){
+        IloExpr cst(env);
+        for (int i{0}; i<n; i++)
+            cst += x[i][j]*clients[i].demand;
+        CC.add(cst<=cars[j].Q);
+        
+        std::ostringstream cstname;
+        cstname.str("");
+        cstname<<"Cst_capacity_car_"<<j;
+        CC[nbcst].setName(cstname.str().c_str());
+        nbcst++;
+    };
+    // Cst :  sum(x_i_j,j=1..k)==1     for i in 1..n
+    for (int i{0}; i<n; i++){
+        IloExpr cst(env);
+        for (int j{0}; j<k; j++)
+            cst += x[i][j];
+        CC.add(cst<=1);
+        CC.add(cst>=1);
 
+        std::ostringstream cstname;
+        cstname.str("");
+        cstname<<"Cst_x_"<<i<<"_*";
+        CC[nbcst].setName(cstname.str().c_str());
+        CC[nbcst+1].setName(cstname.str().c_str());
+        nbcst += 2;
+    };
+    // add Cst
+    model.add(CC);
+
+/////////////////////////////////////
+////////  Obj
+/////////////////////////////////////
+    IloObjective obj=IloAdd(model,IloMaximize(env,0.0));
+    for (int i{0}; i<n; i++)
+        for (int j{0}; j<k; j++)
+            obj.setLinearCoef(x[i][j],0);
+//////////////////////////////////
+///////  Resolution
+/////////////////////////////////
+    IloCplex cplex(model);
+
+////////////////////////////////////
+//////// get solution
+////////////////////////////////////
+    cplex.exportModel("sortie.lp");
+    
+    if ( !cplex.solve()){
+       return false;
+    };
+
+    env.out()<<"Solution status = " <<cplex.getStatus()<<std::endl;
+    env.out()<<"Solution value = " <<cplex.getObjValue()<<std::endl;
+
+    std::vector<std::vector<int>> solx;
+    solx.resize(n,std::vector<int>(k));
+    for (int j{0}; j<k; j++){
+        cars[j].clear_clients();
+        std::cout<<"cars[j].clients.size() apres clear =" <<cars[j].clients.size()<<" "<<std::endl;
+        #ifdef DEBUG
+        std::cout<<"car "<<j<<": "<<std::endl;
+        #endif
+        for (int i{0}; i<n; i++){     
+            if (cplex.getValue(x[i][j]) == 1){
+                bool success = cars[j].add_client(clients[i]);
+                #ifdef DEBUG
+                std::cout<<"add success? "<<success<<std::endl;
+                std::cout<<"cars[j].clients.size() apres add_client =" <<cars[j].clients.size()<<" "<<std::endl;
+                std::cout<<clients[i].demand<<" ";
+                #endif
+            };  
+        };
+        #ifdef DEBUG
+            std::cout<<std::endl;
+        #endif
+    };
+        
+//////////////////////////////////////////
+///////  Cplex's ending
+//////////////////////////////////////////
+    env.end();
+/////////////////////////////////////////
+//////////   output
+//////////////////////////////////////////
+    std::cout<<"test 1"<<std::endl;
+    for (auto car:cars)
+        std::cout<<car<<std::endl;
+    return true;
+};
+
+
+bool binPacking(std::vector<Car>& cars, std::vector<Client>& clients){
+    //initialization
+    bool success = first_fit_decreasing(cars,clients);
+    if (success){
+        #ifdef DEBUG
+        std::cout<<"first_fit_decreasing found a solution of binPacking problem"<<std::endl;
+        #endif
+        return true;
+    };
+    return plne(cars,clients);
+};
 int main(){
-    std::vector<float> demands{3,6,2,3,2,7};
-    float capacity = 10;
-    int k = 3;
+
+    std::vector<float> demands{2,2,2,3,3,4};
+    float Q = 8;
+    int k = 2;
+
+    // std::vector<float> demands{3,6,2,3,2,7};
+    // float Q = 10;
+    // int k = 3;
     std::vector<Client> clients;
     for (auto demand:demands)
         clients.push_back(Client(demand));
     std::vector<Car> cars;
     for (int i{0};i<k;i++)
-        cars.push_back(Car(capacity));
+        cars.push_back(Car(Q));
+
+    std::cout<<"first fit decreasing ** *********"<<std::endl;
     bool success = first_fit_decreasing(cars,clients);
     std::cout<<"found a solution? "<< success<<std::endl;
     for (auto car:cars)
         std::cout<<car<<std::endl;
     std::cout<<"cars.size = "<<cars.size()<<std::endl;
+
+    std::cout<<"plne ** *********"<<std::endl;
+    for (auto car:cars)
+        car.clear_clients();
+    success = plne(cars,clients);
+    std::cout<<"found a solution? "<< success<<std::endl;
+    std::cout<<"test 2"<<std::endl;
+    for (auto car:cars)
+        std::cout<<car<<std::endl;
+    std::cout<<"cars.size = "<<cars.size()<<std::endl;    
 
 
     // std::vector<float> demands{8,5,7,5};
