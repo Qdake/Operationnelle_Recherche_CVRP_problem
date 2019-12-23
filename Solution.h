@@ -5,6 +5,8 @@
 
 class Solution{
     public:
+    int m;
+    int n;
     float objValue;
     std::string status;
     std::vector<std::vector<int>> x;
@@ -14,6 +16,8 @@ class Solution{
     Solution(int n,int m);
     //destructeur
     ~Solution();
+    //affichage
+    void affichage()const;
 };
 
 #endif

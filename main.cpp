@@ -25,10 +25,12 @@ int main(){
 ////////////////////////////////////
 ///// test Solveur
 ////////////////////////////////
-     cout<<" TEST Solveur "<<endl;
-     Solveur solver;
+    cout<<" TEST Solveur "<<endl;
+    Solveur solver;
     solver.set_instance( & instance);
-     solver.set_method("bin_plne_heuristique");
+    solver.set_method("bin_plne_min_heuristique");
     solver.solve();
+    printf("\n********************main\n");
+    solver.psolution->affichage();
     return 0;
 };

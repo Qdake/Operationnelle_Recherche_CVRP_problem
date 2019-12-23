@@ -17,5 +17,4 @@ class Client{
 
 // operator<<
 std::ostream & operator<<(std::ostream & out, const Client & client);
-
 #endif 
