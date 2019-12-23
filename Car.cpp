@@ -1,7 +1,7 @@
 #include <vector>
 #include "Car.h"
 //constructeur
-Car::Car(int capacite_):capacite(capacite_),demande(0){};
+Car::Car(){};
 //destructeur
 Car::~Car(){};
 //constructeur de copie
@@ -27,3 +27,8 @@ bool Car::add_client(Client * pclient){
     };
     return false;
 }
+// operator<<
+std::ostream & operator<<(std::ostream& out, const Car& car){
+    out<<car.to_string();
+    return out;
+};

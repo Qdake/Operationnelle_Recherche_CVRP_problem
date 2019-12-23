@@ -22,4 +22,7 @@ class Car{
     // add_client
     bool add_client(Client * pclient);
 };
+// operator<<
+std::ostream & operator<<(std::ostream& out, const Car& car);
+
 #endif

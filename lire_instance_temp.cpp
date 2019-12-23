@@ -4,7 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <assert.h>
-#include "Client.cpp"
+#include "Client.h"
 int main(){
     std::vector<Client> clients;
 
@@ -12,8 +12,8 @@ int main(){
     std::vector<std::string> string_list;
     std::string line;
     std::ifstream infile;
-    //infile.open("test.data");
-    in.open(path,std::fstream::in);
+    infile.open("test.data");
+    //in.open(path,std::fstream::in);
     if ( ! infile.is_open()){
         std::cout<<"Error when opening file"; exit(1);
     };

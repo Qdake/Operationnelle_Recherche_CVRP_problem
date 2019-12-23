@@ -57,10 +57,10 @@ int main(){
 ////////////////////////////////////
 ///// test Solveur
 ////////////////////////////////
-     //cout<<" TEST Solveur "<<endl;
-     // Solveur solver;
-    //solver.set_instance( & instance);
-    //  solver.set_method("bin_plne_heuristique");
-    // solver.solve();
+     cout<<" TEST Solveur "<<endl;
+     Solveur solver;
+    solver.set_instance( & instance);
+     solver.set_method("bin_plne_heuristique");
+    solver.solve();
     return 0;
 };

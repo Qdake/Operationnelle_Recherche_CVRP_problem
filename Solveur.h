@@ -11,14 +11,7 @@ class Solveur{
     //constructeur
     Solveur(){};
     //destructeur
-    ~Solveur(){
-        if (psolution != nullptr){
-            delete psolution;
-        };
-        if (pinstance != nullptr){
-            delete pinstance;
-        }
-    };
+    ~Solveur(){};
     // set_instance
     void set_instance(Instance* pinstance);
     // set_method

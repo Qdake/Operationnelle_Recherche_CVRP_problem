@@ -14,6 +14,14 @@ class Instance{
     Instance();
     // destructeur
     ~Instance();
+    // get_m
+    int get_m()const;
+    //get_n
+    int get_n() const;
+    //get_Q
+    int get_Q() const;
+    //get_clients()const;
+    std::vector<Client> get_clients()const;
     // read_file
     bool read_file(std::string path);
     // afficher

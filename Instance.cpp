@@ -9,6 +9,23 @@
 Instance::Instance(){};
 // destructeur
 Instance::~Instance(){};
+// get_m
+int Instance::get_m()const{
+    return m;
+};
+//get_n
+int Instance::get_n() const{
+    return n;
+};
+//get_Q
+int Instance::get_Q() const{
+    return Q;
+};
+//get_clients()const;
+std::vector<Client> Instance::get_clients()const{
+    return clients;
+};
+
 
 // read file
 bool Instance::read_file(std::string path){
@@ -40,7 +57,7 @@ bool Instance::read_file(std::string path){
     // CAPACITY
     std::getline(infile,line);
     boost::algorithm::split(string_list, line, boost::algorithm::is_any_of(" "));
-    int Q = std::stoi(string_list[string_list.size()-1]);
+    Q = std::stoi(string_list[string_list.size()-1]);
     std::cout<<"capacity ="<<Q<<std::endl;
     // NODE_COORD_SECTION
     std::getline(infile,line);
@@ -71,7 +88,7 @@ void Instance::afficher()const{
     std::cout<<"n  "<<n<<std::endl;
     std::cout<<"UB "<<UB<<std::endl;
     std::cout<<"Q  "<<Q<<std::endl;
-    for (int i=0; i<n+1; i++){
+    for (int i=0; i<n; i++){
         std::cout<<clients[i]<<std::endl;
     };
 }

@@ -2,14 +2,14 @@
 #define CONFIGURATION_H
 
 #include <vector>
-#include "Car.h"
-using namespace std;
 
 class Configuration{
     public:
-    vector<Car> cars;
+    std::vector<std::vector<int>> cars;
     //constructeur
     Configuration();
+    //constructeur
+    Configuration(int n,int m);
     //destructeur
     ~Configuration();
     // constructeur de copie
