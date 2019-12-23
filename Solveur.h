@@ -2,20 +2,20 @@
 #define SOLVEUR_H
 #include <string>
 #include "Instance.h"
-#include "Configuration.h"
+#include "Solution.h"
 class Solveur{
     public:
     Instance* pinstance;
-    Configuration* psolution;
+    Solution* psolution;
     bool (Solveur::*pmethode)();
     //constructeur
     Solveur(){};
     //destructeur
-    ~Solveur(){};
+    ~Solveur();
     // set_instance
     void set_instance(Instance* pinstance);
     // set_method
-    void set_method(string methode);
+    void set_method(std::string methode);
     // solve
     bool solve();
     // bin_plne_heuristique
