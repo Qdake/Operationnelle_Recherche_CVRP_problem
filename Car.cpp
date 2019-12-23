@@ -1,7 +1,7 @@
 #include <vector>
 #include "Car.h"
 //constructeur
-Car::Car(float capacite_):capacite(capacite_),demande(0){};
+Car::Car(int capacite_):capacite(capacite_),demande(0){};
 //destructeur
 Car::~Car(){};
 //constructeur de copie

@@ -7,10 +7,12 @@ using namespace std;
 class Car{
     public:
     vector<Client* > pclients;
-    float demande;
-    float capacite;
+    int demande;
+    int capacite;
+    //constructeur par defaut
+    Car(){};
     //constructeur
-    Car(float capacite);
+    Car(int capacite);
     //destructeur
     ~Car();
     //constructeur de copie

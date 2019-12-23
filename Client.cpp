@@ -3,7 +3,7 @@
 // default constructor
 Client::Client(){};
 // constructeur
-Client::Client( int numero_, float demande_, float x_, float y_):demande(demande_), numero( numero_),x(x_),y(y_){};
+Client::Client( int numero_, int demande_, int x_, int y_):demande(demande_), numero( numero_),x(x_),y(y_){};
 // toString
 std::string Client::to_string()const{
     return "[" + std::to_string(demande) + "," + std::to_string(numero) + "," + std::to_string(x) + "," + std::to_string(y) + "]";

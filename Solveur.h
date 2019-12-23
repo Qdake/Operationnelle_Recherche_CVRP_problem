@@ -5,15 +5,22 @@
 #include "Configuration.h"
 class Solveur{
     public:
-    Instance* instance;
-    Configuration* solution;
-    bool (Solveur::*methode)();
+    Instance* pinstance;
+    Configuration* psolution;
+    bool (Solveur::*pmethode)();
     //constructeur
     Solveur(){};
     //destructeur
-    ~Solveur(){};
+    ~Solveur(){
+        if (psolution != nullptr){
+            delete psolution;
+        };
+        if (pinstance != nullptr){
+            delete pinstance;
+        }
+    };
     // set_instance
-    void set_instance(Instance* instance);
+    void set_instance(Instance* pinstance);
     // set_method
     void set_method(string methode);
     // solve

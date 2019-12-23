@@ -5,6 +5,7 @@
 #include "Client.h"
 class Instance{
     public:
+    int m;   // no of trucks
     int n;  // nb clients
     float UB;//upper bound
     float Q; //capacity

@@ -4,13 +4,13 @@
 class Client{
     public:
     int numero;
-    float demande;
-    float x;
-    float y;
+    int demande;
+    int x;
+    int y;
     // default constructor
     Client();
     // constructeur
-    Client( int numero, float demande, float x, float y);
+    Client( int numero, int demande, int x, int y);
     //toString
     std::string to_string()const;
 };
