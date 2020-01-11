@@ -68,12 +68,12 @@ bool Solveur::bin_plne_heuristique(){
     ///////////////////////
     /////  Var
     //////////////////////
-    std::vector<std::vector<IloNumVar>> x;
+    std::vector<std::vector<IloNumVar> > x;
     x.resize(n);               //x[i][j] client i in car j
-    for (int i{0}; i<n; i++){
+    for (int i=0; i<n; i++){
         x[i].resize(m);
         std::ostringstream varname;
-        for (int j{0}; j<m; j++){
+        for (int j=0; j<m; j++){
             x[i][j]=IloNumVar(env, 0.0, 1.0, ILOINT);
             varname.str("");
             varname<<"x["<<i<<"]["<<j<<"]";
@@ -84,11 +84,11 @@ bool Solveur::bin_plne_heuristique(){
     //////// CST
     /////////////////////////
     IloRangeArray CC(env);
-    int nbcst{0};
+    int nbcst=0;
     // Cst capacity :   sum(x_i_j,i=1..n-1)<=Q     for j in 0..m-1
-    for (int j{0}; j<m; j++){
+    for (int j=0; j<m; j++){
         IloExpr cst(env);
-        for (int i{1}; i<n; i++)
+        for (int i=1; i<n; i++)
             cst += x[i][j]*clients[i].demande;
         CC.add(cst<=Q);
         
@@ -99,9 +99,9 @@ bool Solveur::bin_plne_heuristique(){
         nbcst++;
     };
     // Cst :  sum(x_i_j,j=1..k)==1     for i in 1..n
-    for (int i{0}; i<n; i++){
+    for (int i=0; i<n; i++){
         IloExpr cst(env);
-        for (int j{0}; j<m; j++)
+        for (int j=0; j<m; j++)
             cst += x[i][j];
         CC.add(cst<=1);
         CC.add(cst>=1);
@@ -120,8 +120,8 @@ bool Solveur::bin_plne_heuristique(){
     ////////  Obj
     /////////////////////////////////////
     IloObjective obj=IloAdd(model,IloMaximize(env,0.0));
-    for (int i{0}; i<n; i++)
-        for (int j{0}; j<m; j++)
+    for (int i=0; i<n; i++)
+        for (int j=0; j<m; j++)
             obj.setLinearCoef(x[i][j],0);
 
 
@@ -145,8 +145,8 @@ bool Solveur::bin_plne_heuristique(){
     this->psolution = new Solution(n,m);
     this->psolution->objValue = cplex.getObjValue();
     this->psolution->status = cplex.getStatus();
-    for (int j{0}; j<m; j++){
-        for (int i{1}; i<n; i++){  
+    for (int j=0; j<m; j++){
+        for (int i=1; i<n; i++){  
             this->psolution->x[i][j] = cplex.getValue(x[i][j]);  
             if (this->psolution->x[i][j] == 1){
                 printf("(%d,%d) ",i,j);
@@ -238,12 +238,12 @@ bool Solveur::bin_plne_min_heuristique(){
     ///////////////////////
     /////  Var
     //////////////////////
-    std::vector<std::vector<IloNumVar>> x;
+    std::vector<std::vector<IloNumVar> > x;
     x.resize(n);               //x[i][j] client i in car j
-    for (int i{0}; i<n; i++){
+    for (int i=0; i<n; i++){
         x[i].resize(m);
         std::ostringstream varname;
-        for (int j{0}; j<m; j++){
+        for (int j=0; j<m; j++){
             x[i][j]=IloNumVar(env, 0.0, 1.0, ILOINT);
             varname.str("");
             varname<<"x["<<i<<"]["<<j<<"]";
@@ -254,7 +254,7 @@ bool Solveur::bin_plne_min_heuristique(){
     // Y
     std::vector<IloNumVar> y;
     y.resize(m);
-    for (int i{0}; i<m; i++){
+    for (int i=0; i<m; i++){
         y[i] = IloNumVar(env, 0.0, 1.0, ILOFLOAT);
     }
 
@@ -262,11 +262,11 @@ bool Solveur::bin_plne_min_heuristique(){
     //////// CST
     /////////////////////////
     IloRangeArray CC(env);
-    int nbcst{0};
+    int nbcst=0;
     // Cst capacity :   sum(x_i_j,i=1..n-1)<=Q     for j in 0..m-1
-    for (int j{0}; j<m; j++){
+    for (int j=0; j<m; j++){
         IloExpr cst(env);
-        for (int i{1}; i<n; i++)
+        for (int i=1; i<n; i++)
             cst += x[i][j]*clients[i].demande;
         CC.add(cst<=Q);
         
@@ -277,9 +277,9 @@ bool Solveur::bin_plne_min_heuristique(){
         nbcst++;
     };
     // Cst :  sum(x_i_j,j=1..k)==1     for i in 1..n
-    for (int i{0}; i<n; i++){
+    for (int i=0; i<n; i++){
         IloExpr cst(env);
-        for (int j{0}; j<m; j++)
+        for (int j=0; j<m; j++)
             cst += x[i][j];
         CC.add(cst<=1);
         CC.add(cst>=1);
@@ -292,18 +292,19 @@ bool Solveur::bin_plne_min_heuristique(){
         nbcst += 2;
     };
     // Cst : y[j] >= x[i][j]  for i in [1...n]  for j in [1...m]
-    for (int j{0}; j<m; j++)
-        for (int i{0}; i<n; i++){
+    for (int j=0; j<m; j++)
+        for (int i=0; i<n; i++){
             IloExpr cst(env);
             cst += y[j];
             cst += -x[i][j];
             CC.add(cst >= 0);
         }
     // Cst : sum(x_i_j, i=1...n) >= y[j]   for j in [1..k]
-    for (int j{0}; j<m; j++){
+    for (int j=0; j<m; j++){
         IloExpr cst(env);
-        for (int i{0}; i<n; i++)
+        for (int i=0; i<n; i++){
             cst += x[i][j];
+        };
         cst += -y[j];
         CC.add(cst>=0);
         
@@ -322,12 +323,12 @@ bool Solveur::bin_plne_min_heuristique(){
     /////////////////////////////////////
     // x
     IloObjective obj=IloAdd(model,IloMaximize(env,0.0));
-    for (int i{0}; i<n; i++)
-        for (int j{0}; j<m; j++)
+    for (int i=0; i<n; i++)
+        for (int j=0; j<m; j++)
             obj.setLinearCoef(x[i][j],0);
 
     // y 
-    for (int j{0}; j<m; j++)
+    for (int j=0; j<m; j++)
         obj.setLinearCoef(y[j],1);
 
 //////////////////////////////////
@@ -350,8 +351,8 @@ bool Solveur::bin_plne_min_heuristique(){
     this->psolution = new Solution(n,m);
     this->psolution->objValue = cplex.getObjValue();
     this->psolution->status = cplex.getStatus();
-    for (int j{0}; j<m; j++){
-        for (int i{0}; i<n; i++){     
+    for (int j=0; j<m; j++){
+        for (int i=0; i<n; i++){     
             if (cplex.getValue(x[i][j])== 1){
                 printf(" (%d,%d) ",i,j);
             };

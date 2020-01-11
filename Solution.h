@@ -9,7 +9,7 @@ class Solution{
     int n;
     float objValue;
     std::string status;
-    std::vector<std::vector<int>> x;
+    std::vector<std::vector<int> > x;
     //constructeur
     Solution();
     //constructeur
