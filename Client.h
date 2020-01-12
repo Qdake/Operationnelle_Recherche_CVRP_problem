@@ -11,8 +11,12 @@ class Client{
     Client();
     // constructeur
     Client( int numero, int demande, int x, int y);
+    // copy
+    Client(const Client &);
     //toString
     std::string to_string()const;
+    // distanceTo
+    float distanceTo(const Client &)const;
 };
 
 // operator<<

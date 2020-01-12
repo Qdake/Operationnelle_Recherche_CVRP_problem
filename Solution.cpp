@@ -20,4 +20,5 @@ void Solution::affichage()const{
         };
         printf("\n");
     };
+    printf("cost %f \n", this->objValue);
 };
