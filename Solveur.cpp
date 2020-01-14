@@ -382,11 +382,11 @@ bool Solveur::bin_plne_min_heuristique(){
 };
 
 
-bool Solveur::plne_branch_and_cut(){
-    // TO DO
-    std::cout<<"plne branch and cut"<<std::endl;
-    return true;
-}
+// bool Solveur::plne_branch_and_cut(){
+//     // TO DO
+//     std::cout<<"plne branch and cut"<<std::endl;
+//     return true;
+// }
 
 
 
@@ -426,7 +426,21 @@ bool Solveur::plne_MTZ(){
 //var
     // x[i][j]   i,j in {0,...n-1}  l'arc (i,j) est utilise ou non
     std::vector<std::vector<IloNumVar> > x;
-    x.resize(n);              
+    x.resize(n);  
+
+    // for (int i=0; i<n; i++){
+    //     x[i].resize(n);
+    // }            
+    // for (int i=0; i<n; i++){
+    //     std::ostringstream varname;
+    //     for (int j=i; j<n; j++){
+    //         x[i][j]=IloNumVar(env, 0.0, 1.0, ILOINT);
+    //         varname.str("");
+    //         varname<<"x["<<i<<"]["<<j<<"]";
+    //         x[i][j].setName(varname.str().c_str());
+    //         x[j][i]=x[i][j];
+    //     };
+    // };
     for (int i=0; i<n; i++){
         x[i].resize(n);
         std::ostringstream varname;
@@ -456,21 +470,34 @@ bool Solveur::plne_MTZ(){
     int nbcst=0;
 
     // Cst 1   Arc_sortant_de_depot
-    
+
     {
         IloExpr cst(env);
         for (int j=1; j<n; j++){
             cst += x[0][j];
         };
-        CC.add(cst<=m);
-        CC.add(cst>=m);        
+        CC.add(cst==m);
         std::ostringstream cstname;
         cstname.str("");
         cstname<<"Arc_sortant_de_depot";
-        CC[nbcst+1].setName(cstname.str().c_str());
         CC[nbcst].setName(cstname.str().c_str());
-        nbcst += 2;
+        nbcst += 1;
     };
+
+    // {
+    //     IloExpr cst(env);
+    //     for (int j=1; j<n; j++){
+    //         cst += x[0][j];
+    //     };
+    //     CC.add(cst<=m);
+    //     CC.add(cst>=m);        
+    //     std::ostringstream cstname;
+    //     cstname.str("");
+    //     cstname<<"Arc_sortant_de_depot";
+    //     CC[nbcst+1].setName(cstname.str().c_str());
+    //     CC[nbcst].setName(cstname.str().c_str());
+    //     nbcst += 2;
+    // };
 
     // Cst 2    Arc_entrant_a_depot
     {
@@ -478,15 +505,27 @@ bool Solveur::plne_MTZ(){
         for (int i=1; i<n; i++){
             cst += x[i][0];
         };
-        CC.add(cst<=m);
-        CC.add(cst>=m);
+        CC.add(cst==m);
         std::ostringstream cstname;
         cstname.str("");
         cstname<<"Arc_entrant_a_depot";
         CC[nbcst].setName(cstname.str().c_str());
-        CC[nbcst+1].setName(cstname.str().c_str());
-        nbcst += 2;
+        nbcst += 1;
     };
+    // {
+    //     IloExpr cst(env);
+    //     for (int i=1; i<n; i++){
+    //         cst += x[i][0];
+    //     };
+    //     CC.add(cst<=m);
+    //     CC.add(cst>=m);
+    //     std::ostringstream cstname;
+    //     cstname.str("");
+    //     cstname<<"Arc_entrant_a_depot";
+    //     CC[nbcst].setName(cstname.str().c_str());
+    //     CC[nbcst+1].setName(cstname.str().c_str());
+    //     nbcst += 2;
+    // };
 
     // Cst 3  Arc_sortant_de_i   i in NC
     for (int it = 1; it < n; it++){
@@ -494,15 +533,27 @@ bool Solveur::plne_MTZ(){
         for (int jt = 0; jt < n; jt++){
             cst += x[it][jt];
         };
-        CC.add(cst <= 1);
-        CC.add(cst >= 1);
+        CC.add(cst == 1);
         std::ostringstream cstname;
         cstname.str("");
         cstname<<"Arc_sortant_de_"<<it;
         CC[nbcst].setName(cstname.str().c_str());
-        CC[nbcst+1].setName(cstname.str().c_str());
-        nbcst += 2;
+        nbcst += 1;
     };
+    // for (int it = 1; it < n; it++){
+    //     IloExpr cst(env);
+    //     for (int jt = 0; jt < n; jt++){
+    //         cst += x[it][jt];
+    //     };
+    //     CC.add(cst <= 1);
+    //     CC.add(cst >= 1);
+    //     std::ostringstream cstname;
+    //     cstname.str("");
+    //     cstname<<"Arc_sortant_de_"<<it;
+    //     CC[nbcst].setName(cstname.str().c_str());
+    //     CC[nbcst+1].setName(cstname.str().c_str());
+    //     nbcst += 2;
+    // };
 
     // Cst 4  Arc_entrant_a_j   j in NC
     for (int jt = 1; jt < n ; jt++){
@@ -510,15 +561,27 @@ bool Solveur::plne_MTZ(){
         for (auto it = 0; it<n; it++){
             cst += x[it][jt];
         };
-        CC.add(cst <= 1);
-        CC.add(cst >= 1);
+        CC.add(cst == 1);
         std::ostringstream cstname;
         cstname.str("");
         cstname<<"Arc_entrant_a_"<<jt;
         CC[nbcst].setName(cstname.str().c_str());
-        CC[nbcst+1].setName(cstname.str().c_str());
-        nbcst += 2;
+        nbcst += 1;
     };
+    // for (int jt = 1; jt < n ; jt++){
+    //     IloExpr cst(env);
+    //     for (auto it = 0; it<n; it++){
+    //         cst += x[it][jt];
+    //     };
+    //     CC.add(cst <= 1);
+    //     CC.add(cst >= 1);
+    //     std::ostringstream cstname;
+    //     cstname.str("");
+    //     cstname<<"Arc_entrant_a_"<<jt;
+    //     CC[nbcst].setName(cstname.str().c_str());
+    //     CC[nbcst+1].setName(cstname.str().c_str());
+    //     nbcst += 2;
+    // };
 
     //Cst 5 MTZ
     for (int i = 0; i < n; i++){
