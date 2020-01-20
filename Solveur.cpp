@@ -400,26 +400,14 @@ bool Solveur::plne_MTZ(){
     int n = this->pinstance->get_n();  // nb client
     int m = this->pinstance->get_m();   // nb vehicle
     int Q = this->pinstance->get_Q();
+    std::vector<std::vector<float> > c = this->pinstance->distance;
     std::vector<Client> clients = this->pinstance->get_clients();
     // NC
     std::set<int> NC;
     for (int i = 1; i<clients.size();i++){
         NC.insert(i);
     };
-    // c[i][j]   i,j in {0,...,n-1}     la distance de i a j
-    std::vector<std::vector<float> > c;
-    c.resize(n);
-    for (int i=0; i<n; i++){
-        c[i].resize(n);
-    };
-    for (int i=0; i<n; i++){
-        for (int j=0; j<n; j++){
-            c[i][j] = clients[i].distanceTo(clients[j]);
-            std::cout<<c[i][j]<<" ";
-        };
-        std::cout<<std::endl;
-    };
-    //std::cout<<"partie init passe"<<std::endl;
+
 //model
     IloEnv   env;
     IloModel model(env);
@@ -662,6 +650,24 @@ bool Solveur::plne_MTZ(){
             };
         };
     };
+
+    for (int i=0; i<n; i++){
+        for (int j=0; j<n; j++){
+            this->psolution->solx[i][j] = 0;
+        }
+    }
+
+    for (int i=0; i<n; i++){
+        for (int j=0;j<n; j++){
+            if (i==0 && j==0){
+                continue;
+            }
+            if (cplex.getValue(x[i][j]) == 1){
+                psolution->solx[i][j] = 1;
+            }
+        }
+    }   
+
 
     std::cout<<" **********************   traduction de lasolution *****************************"<<std::endl;
 // cplex end

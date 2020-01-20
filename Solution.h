@@ -10,6 +10,7 @@ class Solution{
     float objValue;
     std::string status;
     std::vector<std::vector<int> > x;
+    std::vector<std::vector<int> > solx;
     //constructeur
     Solution();
     //constructeur
@@ -18,6 +19,10 @@ class Solution{
     ~Solution();
     //affichage
     void affichage()const;
+    //visualisation
+    void visualisation()const;
+    //showpng
+    void showpng()const;
 };
 
 #endif

@@ -75,6 +75,22 @@ bool Instance::read_file(std::string path){
         //std::cout<<clients[i].demande;
     };
 
+///////////////////////////////
+////   cout entre villes
+/////////////////////////////
+    distance.resize(n);
+    for (int i=0; i<n; i++){
+        distance[i].resize(n);
+    };
+    for (int i=0; i<n; i++){
+        for (int j=0; j<n; j++){
+            distance[i][j] = clients[i].distanceTo(clients[j]);
+            //std::cout<<distance[i][j]<<" ";
+        };
+        std::cout<<std::endl;
+    };
+
+
     return true;
 }
 

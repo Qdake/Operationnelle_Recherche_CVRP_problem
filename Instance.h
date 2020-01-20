@@ -10,6 +10,7 @@ class Instance{
     float UB;//upper bound
     float Q; //capacity
     std::vector< Client> clients;
+    std::vector<std::vector<float> > distance;
     // constructeur
     Instance();
     // destructeur
