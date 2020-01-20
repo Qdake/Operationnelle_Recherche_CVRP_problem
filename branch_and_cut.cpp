@@ -11,7 +11,7 @@
 using namespace std;
 #define DEBUG true
 #define epsilon 0.00001
-
+//find_ViolatedCst_INTEGER
 void find_ViolatedCst_INTEGER(IloEnv env, vector<vector<IloNumVar> >& x, vector<vector<int> > sol,
 list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
 // get current solution
@@ -34,7 +34,7 @@ list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
         if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:  INIT  end**********************\n";
     };
     if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:   ELININATION  begin**********************\n";
-    //elimination of node_connected with 0
+//elimination of node_connected with 0
     for (int i=1; i<n; i++){
         if (sol[0][i] == 1){
             int city = i; 
@@ -59,7 +59,7 @@ list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
         cout<<endl;
         if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:   ELININATION  end**********************\n";
     };
-// trouver sous tours
+     // trouver sous tours
     vector<set<int> > sous_tours;
     while (node_not_connected_with_0.empty() == false){
         set<int> tour;
@@ -92,7 +92,7 @@ list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
 
         cout<<" \n**********************find_ViolatedCst_Integer:   ELININATION  end**********************\n";
     }
-// construction of violated csts
+    // construction of violated csts
 
     if (DEBUG) cout<<"Q = "<<Q<<endl;
     for (i=0;i<sous_tours.size();i++){
@@ -100,35 +100,56 @@ list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
         IloExpr expr(env);
         float s = 0;
     
-    //calcul S
-    cout<<"S = ";
-    for (auto jt = sous_tours[i].begin(); jt != sous_tours[i].end(); jt++){
-        s += clients[*jt].demande;
-        cout<<"node("<<*jt<<")(demande "<<clients[*jt].demande<<")";
-    }; 
-    // cacul IloExpr
-    for (auto jt = sous_tours[i].begin(); jt != sous_tours[i].end(); jt++){
-        // W = V(C) = sous_tours[i]
-        // for all node in W
-            // for all kt in {0,...,n} \ W
-            for (int kt = 0; kt<n; kt++){
-                if (sous_tours[i].find(kt) == sous_tours[i].end()){
-                    if (DEBUG) cout<< "+ x[" << (*jt)<<"]["<<(kt)<<"]";
-                    expr += x[*jt][kt];
+        //calcul S
+        cout<<"S = ";
+        for (auto jt = sous_tours[i].begin(); jt != sous_tours[i].end(); jt++){
+            s += clients[*jt].demande;
+            cout<<"node("<<*jt<<")(demande "<<clients[*jt].demande<<")";
+        }; 
+        // cacul IloExpr
+        for (auto jt = sous_tours[i].begin(); jt != sous_tours[i].end(); jt++){
+            // W = V(C) = sous_tours[i]
+            // for all node in W
+                // for all kt in {0,...,n} \ W
+                for (int kt = 0; kt<n; kt++){
+                    if (sous_tours[i].find(kt) == sous_tours[i].end()){
+                        if (DEBUG) cout<< "+ x[" << (*jt)<<"]["<<(kt)<<"]";
+                        expr += x[*jt][kt];
+                    };
                 };
             };
-        };
-        // cst
-        float minimum_car;
-        minimum_car = min(float(m),ceil(s/Q));
-        cout<<"s= "<<s<<"  Q = "<<Q<<"   s/Q = "<<s/Q<< "   ceil(s/Q) = "<<ceil(s/Q)<<" min ="<<minimum_car<<endl;
+            // cst
+            float minimum_car;
+            minimum_car = min(float(m),ceil(s/Q));
+            cout<<"s= "<<s<<"  Q = "<<Q<<"   s/Q = "<<s/Q<< "   ceil(s/Q) = "<<ceil(s/Q)<<" min ="<<minimum_car<<endl;
 
-        IloRange newCte = IloRange(expr >= minimum_car);
-        if (DEBUG) cout<<" >= "<<minimum_car<<"\n";
-        L_ViolatedCst.push_back(newCte);
+            IloRange newCte = IloRange(expr >= minimum_car);
+            if (DEBUG) cout<<" >= "<<minimum_car<<"\n";
+            L_ViolatedCst.push_back(newCte);
     }
     
 };
+
+// void find_ViolatedCst(IloEnv env, vector<vector<IloNumVar> >& x, vector<vector<float> > sol,
+// list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
+//     // get current solution
+//     int i,j;
+//     int n = x.size();
+    
+//     /////////////////////////////
+//     ///  Greedy randomized algorithm
+//     ///////////////////////////////
+//     set<int> s,v;
+//     for (i=1; i<n; i++) v.insert(i);
+//     // ajouter les noueds de v dans s un par un 
+//     while ( ! v.empty()){
+        
+//     }
+
+
+
+    
+// };
 
 // Necessary inequalities
 ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation,Instance *, pinstance, vector<vector<IloNumVar> >&, x){
@@ -136,7 +157,7 @@ ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation,Instance *, pinstance, vector<vecto
     float Q = pinstance->get_Q();
     int m = pinstance->m;
     std::vector<Client> clients = pinstance->get_clients();
-// get current solution
+    // get current solution
     int i,j;
     int n = x.size();
     vector<vector<int> > sol;
@@ -174,6 +195,47 @@ ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation,Instance *, pinstance, vector<vecto
 
 };
 
+
+// // Usefull inequalities (here are the same as the necessary ones
+// ILOUSERCUTCALLBACK2(UsercutCircuitSeparation,C_Graph &, G,vector<IloNumVar>&,x){
+//     cout<<"\n*********** Lazy separation Callback *************\n"<<endl;
+//     float Q = pinstance->get_Q();
+//     int m = pinstance->m;
+//     std::vector<Client> clients = pinstance->get_clients();
+//     // get current solution
+//     int i,j;
+//     int n = x.size();
+//     vector<vector<float> > sol;
+    
+//     sol.resize(n);
+//     for (i=0; i<n; i++){
+//         sol[i].resize(n);
+//         for (j=0; j<n; j++){
+//             if (i==0 && j==0){
+//                 continue;
+//             }
+//             sol[i][j] = getValue(x[i][j]);
+//         };
+//     };
+//     sol[0][0] = 0; 
+
+
+//     list<IloRange> L_ViolatedCst;
+
+//     /* Separation of .... inequalities */
+//   L_ViolatedCst.clear();
+//   find_ViolatedCst(getEnv(), x, sol, L_ViolatedCst,clients,Q,m);
+  
+//   if (L_ViolatedCst.empty()) cout<<"No Cst found"<<endl;
+  
+//   while (!L_ViolatedCst.empty()){
+//       cout << "Adding constraint : " << L_ViolatedCst.front() << endl;
+//     add(L_ViolatedCst.front(),IloCplex::UseCutForce); //UseCutPurge);
+//     L_ViolatedCst.pop_front();
+//   }
+// }
+
+
 bool Solveur::plne_branch_and_cut(){
 // init
     if (DEBUG) {std::cout<<" **********************BRANCH AND CUT: init begin *****************************"<<std::endl;}
@@ -181,22 +243,13 @@ bool Solveur::plne_branch_and_cut(){
     int m = this->pinstance->get_m();   // nb vehicle
     int Q = this->pinstance->get_Q();
     std::vector<Client> clients = this->pinstance->get_clients();
+    std::vector<std::vector<float> > c = this->pinstance->distance;
     // NC
     std::set<int> NC;
     for (int i = 1; i<clients.size();i++){
         NC.insert(i);
     };
-    // c[i][j]   i,j in {0,...,n-1}     la distance de i a j
-    std::vector<std::vector<float> > c;
-    c.resize(n);
-    for (int i=0; i<n; i++){
-        c[i].resize(n);
-    };
-    for (int i=0; i<n; i++){
-        for (int j=0; j<n; j++){
-            c[i][j] = clients[i].distanceTo(clients[j]);
-        };
-    };
+
     if (DEBUG) std::cout<<" **********************BRANCH AND CUT: init end*****************************"<<std::endl;
 //model
     IloEnv   env;
@@ -209,7 +262,7 @@ bool Solveur::plne_branch_and_cut(){
         x[i].resize(n);
         std::ostringstream varname;
         for (int j=0; j<n; j++){
-            x[i][j]=IloNumVar(env, 0.0, 1.0, ILOINT);
+            x[i][j]=IloNumVar(env, 0.0, 1.0, ILOFLOAT);
             varname.str("");
             varname<<"x["<<i<<"]["<<j<<"]";
             x[i][j].setName(varname.str().c_str());
@@ -223,22 +276,22 @@ bool Solveur::plne_branch_and_cut(){
     int nbcst=0;
     if (DEBUG) std::cout<<" **********************BRANCH AND CUT: add csts begin *****************************"<<std::endl;
 
-    //cst 0 x[i][i] = 0
-    for( int i = 0; i<n; i++){
+    // Cst 0 
+    for (int it = 0; it < n; it++){
         IloExpr cst(env);
-        cst += x[i][i];
+        cst += x[it][it];
         CC.add(cst == 0);
-        nbcst ++;
-    }
+        nbcst += 1;
+    };
 
     // Cst 1   Arc_sortant_de_depot
 
     {
         IloExpr cst(env);
-        for (int j=0; j<n; j++){
+        for (int j=1; j<n; j++){
             cst += x[0][j];
         };
-        CC.add(cst<=m); 
+        CC.add(cst==m);
         std::ostringstream cstname;
         cstname.str("");
         cstname<<"Arc_sortant_de_depot";
@@ -249,17 +302,16 @@ bool Solveur::plne_branch_and_cut(){
     // Cst 2    Arc_entrant_a_depot
     {
         IloExpr cst(env);
-        for (int i=0; i<n; i++){
+        for (int i=1; i<n; i++){
             cst += x[i][0];
         };
-        CC.add(cst<=m);
+        CC.add(cst==m);
         std::ostringstream cstname;
         cstname.str("");
         cstname<<"Arc_entrant_a_depot";
         CC[nbcst].setName(cstname.str().c_str());
         nbcst += 1;
     };
-
 
     // Cst 3  Arc_sortant_de_i   i in NC
     for (int it = 1; it < n; it++){
@@ -288,6 +340,7 @@ bool Solveur::plne_branch_and_cut(){
         CC[nbcst].setName(cstname.str().c_str());
         nbcst += 1;
     };
+ 
 
     // add Cst
     model.add(CC);
@@ -324,9 +377,58 @@ bool Solveur::plne_branch_and_cut(){
 
 //solve
     if (DEBUG) std::cout<<" **********************BRANCH AND CUT: get solution begin *****************************"<<std::endl;
-
     env.out()<<"Solution status = " <<cplex.getStatus()<<std::endl;
     env.out()<<"Solution value = " <<cplex.getObjValue()<<std::endl;
+
+    this->psolution = new Solution(n,m);
+    this->psolution->objValue = cplex.getObjValue();
+    this->psolution->status = cplex.getStatus();
+    std::vector<int> startCities;
+//    std::cout<<"x.size() = "<<x.size()<<" x[0].size() = "<<x[0].size()<<std::endl;
+    
+    ////TO DEBUG : pourquoi ne peut pas afficher x[0][0]
+
+    for (int i=0; i<n; i++){
+        for (int j=0; j<m; j++){
+            this->psolution->x[i][j] = 0;
+        }
+    }
+    int k = -1;
+    for (int i=1; i<n; i++){
+        if (cplex.getValue(x[0][i]) == 1){
+            std::cout<<std::endl;
+            k++;
+//            std::cout<<k <<": ";
+            int city = i; 
+            int nextCity;
+            while (city != 0){
+//                std::cout<<city<<"  ";
+                this->psolution->x[city][k] = 1;   //city in vehicle k
+                for (int nextCity=0; nextCity<n; nextCity++){
+                    if (cplex.getValue(x[city][nextCity]) >= 1-epsilon){
+                        city = nextCity;
+                        break;
+                    }
+                };
+            };
+        };
+    };
+
+    for (int i=0; i<n; i++){
+        for (int j=0; j<n; j++){
+            this->psolution->solx[i][j] = 0;
+        }
+    }
+
+    for (int i=0; i<n; i++){
+        for (int j=0;j<n; j++){
+            if (i==0 && j==0){
+                continue;
+            }
+            psolution->solx[i][j] = cplex.getValue(x[i][j]);
+            
+        }
+    }   
 
     if (DEBUG) std::cout<<" **********************BRANCH AND CUT: get solution begin *****************************"<<std::endl; 
 //

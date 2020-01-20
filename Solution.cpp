@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#define epsilon 0.00001
 //constructeur par defaut
 Solution::Solution(){};
 //constructeur
@@ -40,7 +41,7 @@ void Solution::visualisation()const{
     }
     for (i=0; i<n; i++){
         for (j=0; j<n; j++){
-            if (solx[i][j]==1){
+            if (solx[i][j] > epsilon){
                 dot += std::to_string(i+1);
                 dot += "->";
                 dot += std::to_string(j+1);
