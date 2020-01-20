@@ -10,7 +10,7 @@ class Solution{
     float objValue;
     std::string status;
     std::vector<std::vector<int> > x;
-    std::vector<std::vector<int> > solx;
+    std::vector<std::vector<float> > solx;
     //constructeur
     Solution();
     //constructeur
