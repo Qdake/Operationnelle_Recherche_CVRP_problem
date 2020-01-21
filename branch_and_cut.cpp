@@ -15,15 +15,13 @@ using namespace std;
 //find_ViolatedCst_INTEGER
 void find_ViolatedCst_INTEGER(IloEnv env, vector<vector<IloNumVar> >& x, vector<vector<int> > sol,
 list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
+//init
     bool DEBUG = false;
-// get current solution
+
     int i,j;
     int n = x.size();
 
-/////////////////////////////////////////////////////////////////
-/////////////     Detection de sous tour
-/////////////////////////////////////////////////////////////////
-
+//     Detection de sous tour
 
     // find all nodes which are not connected with 0 
     set<int> node_not_connected_with_0;
@@ -137,53 +135,11 @@ list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
     
 };
 
-// Necessary inequalities
-ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation,Instance *, pinstance, vector<vector<IloNumVar> >&, x){
-    cout<<"\n*********************** Lazy separation Callback   BEIGIN *********************\n"<<endl;
-    float Q = pinstance->get_Q();
-    int m = pinstance->m;
-    std::vector<Client> clients = pinstance->get_clients();
-    // get current solution
-    int i,j;
-    int n = x.size();
-    vector<vector<int> > sol;
-    
-    sol.resize(n);
-    for (i=0; i<n; i++){
-        sol[i].resize(n);
-        for (j=0; j<n; j++){
-            if (i==0 && j==0){
-                continue;
-            }
-            if (getValue(x[i][j])<epsilon){
-                sol[i][j] = 0;
-            }else{
-                sol[i][j] = 1;
-            }
-        };
-    };
-    sol[0][0] = 0; 
-
-
-    list<IloRange> L_ViolatedCst;
-
-    /* Separation of .... inequalities */
-  L_ViolatedCst.clear();
-  find_ViolatedCst_INTEGER(getEnv(), x, sol, L_ViolatedCst,clients,Q,m);
-  
-  if (L_ViolatedCst.empty()) cout<<"No Cst found"<<endl;
-  
-  while (!L_ViolatedCst.empty()){
-      cout << "Adding constraint : " << L_ViolatedCst.front() << endl;
-    add(L_ViolatedCst.front(),IloCplex::UseCutForce); //UseCutPurge);
-    L_ViolatedCst.pop_front();
-  };
-    cout<<"\n*********************** Lazy separation Callback   END *********************\n"<<endl;
-};
-
 void find_ViolatedCst(IloEnv env, vector<vector<IloNumVar> >& x, vector<vector<float> > sol,
 list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
+//init
     bool DEBUG = false;
+    
     if (DEBUG) cout<<"*********************** Ilo user cut  BEGIN **********************"<<endl;
     // get current solution
     int i,j;
@@ -191,9 +147,7 @@ list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
     map<int, float> sommex;
     int u,w;
     float s_demande,h,hx;
-    /////////////////////////////
-    ///  Greedy randomized algorithm
-    ///////////////////////////////
+//  Greedy randomized algorithm
     if (DEBUG) cout<<"*********************** Greedy randomized algorithm  BEGIN **********************"<<endl;
     set<int> s,v;
     for (i=1; i<n; i++) v.insert(i);
@@ -298,10 +252,55 @@ list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
     if (DEBUG) cout<<"*********************** Ilo user cut  END **********************"<<endl;
 };
 
+// Necessary inequalities
+ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation,Instance *, pinstance, vector<vector<IloNumVar> >&, x){
+// init
+    cout<<"\n*********************** Lazy separation Callback   BEIGIN *********************\n"<<endl;
+    float Q = pinstance->get_Q();
+    int m = pinstance->m;
+    std::vector<Client> clients = pinstance->get_clients();
+    // get current solution
+    int i,j;
+    int n = x.size();
+    vector<vector<int> > sol;
+    
+    sol.resize(n);
+    for (i=0; i<n; i++){
+        sol[i].resize(n);
+        for (j=0; j<n; j++){
+            if (i==0 && j==0){
+                continue;
+            }
+            if (getValue(x[i][j])<epsilon){
+                sol[i][j] = 0;
+            }else{
+                sol[i][j] = 1;
+            }
+        };
+    };
+    sol[0][0] = 0; 
+
+
+    list<IloRange> L_ViolatedCst;
+
+// Separation of .... inequalities 
+  L_ViolatedCst.clear();
+  find_ViolatedCst_INTEGER(getEnv(), x, sol, L_ViolatedCst,clients,Q,m);
+  
+  if (L_ViolatedCst.empty()) cout<<"No Cst found"<<endl;
+  
+  while (!L_ViolatedCst.empty()){
+      cout << "Adding constraint : " << L_ViolatedCst.front() << endl;
+    add(L_ViolatedCst.front(),IloCplex::UseCutForce); //UseCutPurge);
+    L_ViolatedCst.pop_front();
+  };
+    cout<<"\n*********************** Lazy separation Callback   END *********************\n"<<endl;
+};
 
 
 // Usefull inequalities (here are the same as the necessary ones
 ILOUSERCUTCALLBACK2(UserCutSeparation,Instance *, pinstance, vector<vector<IloNumVar> >&, x){
+//init
     bool DEBUG = false;
     cout<<"\n******************* User Separation Callback   BEGIN*************\n"<<endl;
     float Q = pinstance->get_Q();
@@ -324,7 +323,7 @@ ILOUSERCUTCALLBACK2(UserCutSeparation,Instance *, pinstance, vector<vector<IloNu
     };
     sol[0][0] = 0; 
 
-
+// gen cst
     list<IloRange> L_ViolatedCst;
 
     /* Separation of .... inequalities */
@@ -343,14 +342,11 @@ ILOUSERCUTCALLBACK2(UserCutSeparation,Instance *, pinstance, vector<vector<IloNu
 
 }
 
-//////////////////////////////////////
-/////  CHECK SOLUTION FEASABILITY ////
-//////////////////////////////////////
-
 // Check if an integer solution (can be obtained by Cplex by heuristic or within a B&B node
 ILOINCUMBENTCALLBACK2(CheckSolFeas, Instance *, pinstance, vector<vector<IloNumVar> >&, x){
+//init 
      bool DEBUG = false;
-// get current solution
+
     int i,j;
     int n = x.size();
     float Q = pinstance->Q;
@@ -375,10 +371,7 @@ ILOINCUMBENTCALLBACK2(CheckSolFeas, Instance *, pinstance, vector<vector<IloNumV
     };
     sol[0][0] = 0; 
 
-/////////////////////////////////////////////////////////////////
-/////////////     Detection de sous tour
-/////////////////////////////////////////////////////////////////
-
+// violation sous tour
 
     // find all nodes which are not connected with 0 
     set<int> node_not_connected_with_0;
@@ -442,9 +435,7 @@ ILOINCUMBENTCALLBACK2(CheckSolFeas, Instance *, pinstance, vector<vector<IloNumV
 
   if (! sous_tours.empty()){
     reject();
-    #ifdef OUTPUT
-    cout<<"Solution Reject"<<endl;
-    #endif
+    if (DEBUG) cout<<"Solution Reject"<<endl;
   }
     
     ////////////////////////////////////////////////
@@ -495,8 +486,9 @@ ILOINCUMBENTCALLBACK2(CheckSolFeas, Instance *, pinstance, vector<vector<IloNumV
 }
 
 bool Solveur::plne_branch_and_cut(){
-    bool DEBUG = true;
 // init
+    bool DEBUG = true;
+
     if (DEBUG) {std::cout<<" **********************BRANCH AND CUT: init begin *****************************"<<std::endl;}
     int n = this->pinstance->get_n();  // nb client
     int m = this->pinstance->get_m();   // nb vehicle
@@ -623,7 +615,6 @@ bool Solveur::plne_branch_and_cut(){
 // ADD CHECK SOLUTION FEASABILITY
     cplex.use(LazyCutSeparation(env,pinstance,x));
     cplex.use(UserCutSeparation(env,pinstance,x));
-
     cplex.use(CheckSolFeas(env,pinstance,x));
 //Resolutino
 
@@ -637,7 +628,7 @@ bool Solveur::plne_branch_and_cut(){
 
     if (DEBUG) std::cout<<" **********************BRANCH AND CUT: solve end *****************************"<<std::endl;
 
-//solve
+// get solution
     if (DEBUG) std::cout<<" **********************BRANCH AND CUT: get solution begin *****************************"<<std::endl;
     env.out()<<"Solution status = " <<cplex.getStatus()<<std::endl;
     env.out()<<"Solution value = " <<cplex.getObjValue()<<std::endl;
@@ -645,9 +636,7 @@ bool Solveur::plne_branch_and_cut(){
     this->psolution = new Solution(n,m);
     this->psolution->objValue = cplex.getObjValue();
     this->psolution->status = cplex.getStatus();
-    std::vector<int> startCities;
-//    std::cout<<"x.size() = "<<x.size()<<" x[0].size() = "<<x[0].size()<<std::endl;
-    
+    std::vector<int> startCities; 
     ////TO DEBUG : pourquoi ne peut pas afficher x[0][0]
 
     for (int i=0; i<n; i++){
@@ -660,11 +649,9 @@ bool Solveur::plne_branch_and_cut(){
         if (cplex.getValue(x[0][i]) == 1){
             std::cout<<std::endl;
             k++;
-//            std::cout<<k <<": ";
             int city = i; 
             int nextCity;
             while (city != 0){
-//                std::cout<<city<<"  ";
                 this->psolution->x[city][k] = 1;   //city in vehicle k
                 for (int nextCity=0; nextCity<n; nextCity++){
                     if (cplex.getValue(x[city][nextCity]) >= 1-epsilon){
@@ -701,7 +688,7 @@ bool Solveur::plne_branch_and_cut(){
     }   
 
     if (DEBUG) std::cout<<" **********************BRANCH AND CUT: get solution begin *****************************"<<std::endl; 
-//
+// end
     std::cout<<"plne branch and cut  SOLVER FIN \n \n"<<std::endl;
     return false;
 
