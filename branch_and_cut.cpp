@@ -132,7 +132,75 @@ list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
             if (DEBUG) cout<<" >= "<<minimum_car<<"\n";
             L_ViolatedCst.push_back(newCte);
     }
+// // violation capacite TO DEBUG******
+
+//     if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:  INIT  begin**********************\n";
+//     set<int> nodes;
+//     for (i=0; i<n; i++){
+//         nodes.insert(i);
+//     };
+//     cout<<"set: ";
+//     for (int it:nodes){
+//         cout<<it <<" ";
+//     }
+//     cout<<endl;
+//     if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:  INIT  end**********************\n";
+
+//     if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:   ELININATION  begin**********************\n";
+//     // tours
+//     vector<set<int> > tours;
+//     while (nodes.empty() == false){
+//         set<int> tour;
+//         int city = *(nodes.begin());
+//         int nextCity;
+//         while (nodes.find(city) != nodes.end()){
+//             nodes.erase(city);   //city in vehicle k
+//             tour.insert(city);
+//             for (auto nextCity=nodes.begin(); nextCity != nodes.end(); nextCity++){
+//                 if (sol[city][*nextCity] == 1){
+//                     city = *nextCity;
+//                     break;
+//                 }
+//             };
+//         };
+//         tours.push_back(tour);
+//     }; 
+
+//     for (set<int> tour:tours){
+//         for (int j:tour){
+//             if (sol[j][0] >= 1-epsilon){
+//                 tour.insert(0);
+//             }
+//         }
+//         cout<<"tour ";
+//         for (int i:tour){
+//             cout<<i<<"  ";
+//         }
+//         cout<<endl;
+//     }  
     
+//     for (set<int> tour:tours){
+//         float somme_capacite = 0;
+//         for (int i:tour){
+//             somme_capacite += clients[i].demande;
+//         }
+//         if (somme_capacite > Q){
+//             IloExpr expr(env);
+//             // ******************** construre CST
+//             //float s = 0;
+//             for (int i:tour){
+//                 for (int j:tour){
+//                     if (sol[i][j]>=1-epsilon){
+//                         expr += x[i][j] * clients[i].demande;
+//                         //s += sol[i][j];
+//                     }
+//                 }
+//             }
+//             IloRange newCte = IloRange(expr<=Q);
+//             L_ViolatedCst.push_back(newCte);
+//             //**************************************
+//         }
+//     }
 };
 
 void find_ViolatedCst(IloEnv env, vector<vector<IloNumVar> >& x, vector<vector<float> > sol,
@@ -252,6 +320,136 @@ list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
     if (DEBUG) cout<<"*********************** Ilo user cut  END **********************"<<endl;
 };
 
+// void find_ViolatedCst(IloEnv env, vector<vector<IloNumVar> >& x, vector<vector<float> > sol,
+// list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
+// //init
+//     bool DEBUG = false;
+    
+//     if (DEBUG) cout<<"*********************** Ilo user cut  BEGIN **********************"<<endl;
+//     // get current solution
+//     int i,j;
+//     int n = x.size();
+//     map<int, float> sommex;
+//     int u,w;
+//     float s_demande,h,hx,gap;
+// //  Greedy randomized algorithm
+//     if (DEBUG) cout<<"*********************** Greedy randomized algorithm  BEGIN **********************"<<endl;
+//     set<int> s,v;
+//     gap = -1;
+//     for (int inits = 1; inits<n; inits++){
+//         s.clear();
+//         s.insert(inits);
+//         for (i=1; i<n; i++) v.insert(i);
+//         // ajouter les noueds de v dans s un par un 
+//         while ( v.size() != 0){
+//             if (DEBUG) cout<<"*********************** add nodes in S  BEGIN **********************"<<endl;
+//             if (DEBUG){
+//                 cout<<" while ing: "<<endl;
+//                 cout<<"S={"; for (auto it = s.begin(); it!=s.end();it++) cout<<*it<<" "; cout<<"}"<<endl;
+//                 cout<<"V={"; for (auto it = v.begin(); it!=v.end();it++) cout<<*it<<" "; cout<<"}"<<endl;
+//             }
+//             sommex.clear();
+//             for (auto it = v.begin(); it != v.end(); it++){
+//                 h = 0;
+//                 for (auto ij = s.begin(); ij != s.end(); ij++){
+//                     //cout<<"sol[*it][*ij]= "<<sol[*it][*ij]; 
+//                     h += sol[*it][*ij];
+//                 };
+//                 if (s.empty()){
+//                     for (auto ij = v.begin(); ij != v.end(); ij++){
+//                         if (DEBUG) cout<<"sol[*it][*ij]= "<<sol[*it][*ij]; 
+//                         h += sol[*it][*ij];
+//                     };    
+//                 }
+//                 sommex[*it] = h;
+//             }
+
+//             if (DEBUG){
+//                 for (auto it = v.begin(); it != v.end(); it++){
+//                     cout<<"<"<<*it<<","<<sommex.find(*it)->second<<">  ";
+//                 }
+//                 cout<<endl;
+//             }
+
+//             // find max h
+//             if (DEBUG) cout<<"*********************** find best node to add in S  BEGIN **********************"<<endl;
+//             u = *(v.begin());
+//             h = sommex.find(u)->second;
+//             for (auto it = v.begin(); it != v.end(); it++){
+//                 if (sommex.find(*it)->second > h){
+//                     u = *it;
+//                     h = sommex.find(*it)->second;
+//                 }
+//             }
+//             if (DEBUG) cout<<"*********************** find best node to add in S  END **********************"<<endl;
+//             // maj
+//             if (DEBUG) cout<<"*********************** MAJ  S and V   BEGIN **********************"<<endl;
+//             s.insert(u);
+//             v.erase(u);
+//             if (DEBUG) cout<<"added node : "<<u<<endl;
+//             if (DEBUG){
+//                 cout<<"S={"; for (auto it = s.begin(); it!=s.end();it++) cout<<*it<<" "; cout<<"}"<<endl;
+//                 cout<<"V={"; for (auto it = v.begin(); it!=v.end();it++) cout<<*it<<" "; cout<<"}"<<endl;
+//             }
+//             if (DEBUG) cout<<"*********************** MAJ  S and V   END **********************"<<endl;
+//             s_demande = 0;
+//             hx = 0;
+//             for (auto ij=s.begin(); ij != s.end(); ij++){
+//                 s_demande += clients[*ij].demande;
+//                 for (auto it=v.begin(); it != v.end(); it++){
+//                     hx += sol[*ij][*it];    
+//                 };
+//             }
+//             // ??? hx>=h/Q
+//             if (hx < h/Q){
+
+//                 if (h/Q-hx > gap){
+//                     if (gap != -1){
+//                         L_ViolatedCst.pop_back();
+//                     };
+//                     gap = h/Q-hx;
+//                 }
+
+//                 if (DEBUG){
+//                     cout<<"S ={ ";
+//                     for (auto it = s.begin(); it!= s.end();it++){
+//                         cout<<*it<<"  ";
+//                     }
+//                     cout<<"}"<<endl;
+//                 }
+//                 // construire IloExpression
+//                 IloExpr expr(env);
+//                 if (DEBUG){
+//                     cout<<"ILoExpr = ";
+//                 }
+//                 for (auto ij=s.begin(); ij != s.end(); ij++){
+//                     for (auto it=v.begin(); it != v.end(); it++){
+//                         expr += x[*ij][*it];    
+//                         if (DEBUG){
+//                             cout<<"x["<<*ij<<"]["<<*it<<"] + ";
+//                         }
+//                     };
+//                     expr += x[*ij][0];
+//                     if (DEBUG){
+//                         cout<<"x["<<*ij<<"]["<< 0 <<"] + ";
+//                     }
+//                 };
+//                 if (DEBUG){
+//                     cout<<endl;
+//                 }
+//                 // construir CST
+//                 IloRange newCte = IloRange(expr >= h/Q);
+//                 L_ViolatedCst.push_back(newCte);
+//                 exit;
+//                 break;
+//             };
+//         }
+//     };
+//     if (DEBUG) cout<<"*********************** Greedy randomized algorithm  END **********************"<<endl;
+
+//     if (DEBUG) cout<<"*********************** Ilo user cut  END **********************"<<endl;
+// };
+
 // Necessary inequalities
 ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation,Instance *, pinstance, vector<vector<IloNumVar> >&, x){
 // init
@@ -286,15 +484,16 @@ ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation,Instance *, pinstance, vector<vecto
 // Separation of .... inequalities 
   L_ViolatedCst.clear();
   find_ViolatedCst_INTEGER(getEnv(), x, sol, L_ViolatedCst,clients,Q,m);
-  
-  if (L_ViolatedCst.empty()) cout<<"No Cst found"<<endl;
-  
-  while (!L_ViolatedCst.empty()){
-      cout << "Adding constraint : " << L_ViolatedCst.front() << endl;
-    add(L_ViolatedCst.front(),IloCplex::UseCutForce); //UseCutPurge);
-    L_ViolatedCst.pop_front();
-  };
+
+    if (L_ViolatedCst.empty()) cout<<"No Cst found"<<endl;
+    
+    while (!L_ViolatedCst.empty()){
+        cout << "Adding constraint : " << L_ViolatedCst.front() << endl;
+        add(L_ViolatedCst.front(),IloCplex::UseCutForce); //UseCutPurge);
+        L_ViolatedCst.pop_front();
+    };
     cout<<"\n*********************** Lazy separation Callback   END *********************\n"<<endl;
+    
 };
 
 
@@ -438,17 +637,23 @@ ILOINCUMBENTCALLBACK2(CheckSolFeas, Instance *, pinstance, vector<vector<IloNumV
     if (DEBUG) cout<<"Solution Reject"<<endl;
   }
     
-    ////////////////////////////////////////////////
-    ////////      verification de capacite
-    ///////////////////////////////////////////////////
+
+// violation capacite
 
     // find all nodes which are not connected with 0 
+    if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:  INIT  begin**********************\n";
     set<int> nodes;
-    //init
-    if (DEBUG) cout<<" \n**********************CheckSolFeas:  INIT  begin**********************\n";
     for (i=0; i<n; i++){
         nodes.insert(i);
     };
+    cout<<"set: ";
+    for (int it:nodes){
+        cout<<it <<" ";
+    }
+    cout<<endl;
+    if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:  INIT  end**********************\n";
+
+    if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:   ELININATION  begin**********************\n";
     // tours
     vector<set<int> > tours;
     while (nodes.empty() == false){
@@ -467,6 +672,19 @@ ILOINCUMBENTCALLBACK2(CheckSolFeas, Instance *, pinstance, vector<vector<IloNumV
         };
         tours.push_back(tour);
     }; 
+
+    for (auto tour:tours){
+        for (int j:tour){
+            if (sol[j][0] == 1){
+                tour.insert(0);
+            }
+        }
+        cout<<"tour ";
+        for (int i:tour){
+            cout<<i<<"  ";
+        }
+        cout<<endl;
+    }  
     
     for (auto tour:tours){
         float somme_capacite = 0;
@@ -481,7 +699,7 @@ ILOINCUMBENTCALLBACK2(CheckSolFeas, Instance *, pinstance, vector<vector<IloNumV
         }
     }
 
-    cout<<"Solution accepted"<<endl;
+    if (DEBUG) cout<<"Solution accepted"<<endl;
 
 }
 
