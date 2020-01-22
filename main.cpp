@@ -22,8 +22,8 @@ int main(){
     string path;
     //instance.read_file("./test2.data");
     //instance.read_file("./instance/Vrp-Set-P/P/P-n16-k8.vrp");
-    instance.read_file("./instance/Vrp-Set-P/P/P-n19-k2.vrp");
-   // instance.read_file("./instance/Vrp-Set-P/P/P-n22-k8.vrp");
+    //instance.read_file("./instance/Vrp-Set-P/P/P-n19-k2.vrp");
+    instance.read_file("./instance/Vrp-Set-P/P/P-n22-k8.vrp");
     //instance.read_file("./instance/Vrp-Set-P/P/P-n23-k8.vrp");
 
     instance.afficher();

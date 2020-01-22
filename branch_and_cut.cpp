@@ -21,186 +21,80 @@ list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
     int i,j;
     int n = x.size();
 
-//     Detection de sous tour
-
-    // find all nodes which are not connected with 0 
-    set<int> node_not_connected_with_0;
-    //init
+// cst coupe cvrp
     if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:  INIT  begin**********************\n";
+    set<int> nodes;
     for (i=0; i<n; i++){
-        node_not_connected_with_0.insert(i);
+        nodes.insert(i);
     };
-    if (DEBUG){
-        cout<<"set: ";
-        for (auto it=node_not_connected_with_0.begin(); it != node_not_connected_with_0.end(); it++){
-            cout<<*it <<" ";
-        }
-        cout<<endl;
-        if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:  INIT  end**********************\n";
-    };
+    cout<<"set: ";
+    for (int it:nodes){
+        cout<<it <<" ";
+    }
+    cout<<endl;
+    if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:  INIT  end**********************\n";
+
     if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:   ELININATION  begin**********************\n";
-    //elimination of node_connected with 0
-    for (int i=1; i<n; i++){
-        if (sol[0][i] == 1){
-            int city = i; 
-            int nextCity;
-            while (city != 0){
-                node_not_connected_with_0.erase(city);   //city in vehicle k
-                for (int nextCity=0; nextCity<n; nextCity++){
-                    if (sol[city][nextCity] == 1){
-                        city = nextCity;
-                        break;
-                    }
-                };
-            };
-        };
-    };
-    node_not_connected_with_0.erase(0);
-    if (DEBUG){
-        cout<<"set: ";
-        for (auto it=node_not_connected_with_0.begin(); it != node_not_connected_with_0.end(); it++){
-            cout<<*it <<" ";
-        }
-        cout<<endl;
-        if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:   ELININATION  end**********************\n";
-    };
-    // trouver sous tours
-    vector<set<int> > sous_tours;
-    while (node_not_connected_with_0.empty() == false){
+    // tours
+    vector<set<int> > tours;
+    while (nodes.empty() == false){
         set<int> tour;
-        int city = *(node_not_connected_with_0.begin());
+        int city = *(nodes.begin());
         int nextCity;
-        while (node_not_connected_with_0.find(city) != node_not_connected_with_0.end()){
-            node_not_connected_with_0.erase(city);   //city in vehicle k
+        while (nodes.find(city) != nodes.end()){
+            nodes.erase(city);   //city in vehicle k
             tour.insert(city);
-            for (auto nextCity=node_not_connected_with_0.begin(); nextCity != node_not_connected_with_0.end(); nextCity++){
+            for (auto nextCity=nodes.begin(); nextCity != nodes.end(); nextCity++){
                 if (sol[city][*nextCity] == 1){
                     city = *nextCity;
                     break;
                 }
             };
         };
-        sous_tours.push_back(tour);
-    };
+        tours.push_back(tour);
+    }; 
 
-    if (DEBUG){
-        for (i=0;i<sous_tours.size();i++){
-            cout<<"sous_tour: ";
-            for (auto jt = sous_tours[i].begin(); jt != sous_tours[i].end(); jt++){
-                for (auto kt = sous_tours[i].begin(); kt != sous_tours[i].end();kt++){
-                    if (sol[*jt][*kt] == 1){
-                        cout<< *jt<<"-->"<<*kt<< " ";
-                    }
-                }
-            };
-        };
-
-        cout<<" \n**********************find_ViolatedCst_Integer:   ELININATION  end**********************\n";
-    }
-    // construction of violated csts
-
-    if (DEBUG) cout<<"Q = "<<Q<<endl;
-    for (i=0;i<sous_tours.size();i++){
-        if (DEBUG) cout<<"IloExpr: ";
-        IloExpr expr(env);
-        float s = 0;
+    for (set<int> tour:tours){
+        for (int j:tour){
+            if (sol[j][0] >= 1-epsilon){
+                tour.insert(0);
+            }
+        }
+        cout<<"tour ";
+        for (int i:tour){
+            cout<<i<<"  ";
+        }
+        cout<<endl;
+    }  
     
-        //calcul S
-        cout<<"S = ";
-        for (auto jt = sous_tours[i].begin(); jt != sous_tours[i].end(); jt++){
-            s += clients[*jt].demande;
-            cout<<"node("<<*jt<<")(demande "<<clients[*jt].demande<<")";
-        }; 
-        // cacul IloExpr
-        for (auto jt = sous_tours[i].begin(); jt != sous_tours[i].end(); jt++){
-            // W = V(C) = sous_tours[i]
-            // for all node in W
-                // for all kt in {0,...,n} \ W
-                for (int kt = 0; kt<n; kt++){
-                    if (sous_tours[i].find(kt) == sous_tours[i].end()){
-                        if (DEBUG) cout<< "+ x[" << (*jt)<<"]["<<(kt)<<"]";
-                        expr += x[*jt][kt];
+    for (set<int> tour:tours){
+        float somme_demande = 0;
+        for (int i:tour){
+            somme_demande += clients[i].demande;
+        }
+        // si c'est un sous tour   OU
+        // si ce n'est pas un sous tour, mais la somme_demande depasse la capacite Q
+        if ( tour.find(0) == tour.end() || 
+             (tour.find(0) != tour.end() && somme_demande > Q) ){
+            //dans les deux cas on enleve le depot, pas de changement pour le cas sous tour
+            tour.erase(0);
+            IloExpr expr(env);
+            for (int i:tour){
+                for (int j=0; j<n; j++){
+                    // si j est dans tour
+                    if (tour.find(j) != tour.end()){
+                        continue;
                     };
-                };
-            };
-            // cst
-            float minimum_car;
-            minimum_car = min(float(m),ceil(s/Q));
-            cout<<"s= "<<s<<"  Q = "<<Q<<"   s/Q = "<<s/Q<< "   ceil(s/Q) = "<<ceil(s/Q)<<" min ="<<minimum_car<<endl;
-
-            IloRange newCte = IloRange(expr >= minimum_car);
-            if (DEBUG) cout<<" >= "<<minimum_car<<"\n";
+                    // sinon
+                    expr += x[i][j];
+                }
+            }
+            
+            IloRange newCte = IloRange(expr >= ceil(somme_demande/Q));
             L_ViolatedCst.push_back(newCte);
-    }
-// // violation capacite TO DEBUG******
-
-//     if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:  INIT  begin**********************\n";
-//     set<int> nodes;
-//     for (i=0; i<n; i++){
-//         nodes.insert(i);
-//     };
-//     cout<<"set: ";
-//     for (int it:nodes){
-//         cout<<it <<" ";
-//     }
-//     cout<<endl;
-//     if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:  INIT  end**********************\n";
-
-//     if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:   ELININATION  begin**********************\n";
-//     // tours
-//     vector<set<int> > tours;
-//     while (nodes.empty() == false){
-//         set<int> tour;
-//         int city = *(nodes.begin());
-//         int nextCity;
-//         while (nodes.find(city) != nodes.end()){
-//             nodes.erase(city);   //city in vehicle k
-//             tour.insert(city);
-//             for (auto nextCity=nodes.begin(); nextCity != nodes.end(); nextCity++){
-//                 if (sol[city][*nextCity] == 1){
-//                     city = *nextCity;
-//                     break;
-//                 }
-//             };
-//         };
-//         tours.push_back(tour);
-//     }; 
-
-//     for (set<int> tour:tours){
-//         for (int j:tour){
-//             if (sol[j][0] >= 1-epsilon){
-//                 tour.insert(0);
-//             }
-//         }
-//         cout<<"tour ";
-//         for (int i:tour){
-//             cout<<i<<"  ";
-//         }
-//         cout<<endl;
-//     }  
-    
-//     for (set<int> tour:tours){
-//         float somme_capacite = 0;
-//         for (int i:tour){
-//             somme_capacite += clients[i].demande;
-//         }
-//         if (somme_capacite > Q){
-//             IloExpr expr(env);
-//             // ******************** construre CST
-//             //float s = 0;
-//             for (int i:tour){
-//                 for (int j:tour){
-//                     if (sol[i][j]>=1-epsilon){
-//                         expr += x[i][j] * clients[i].demande;
-//                         //s += sol[i][j];
-//                     }
-//                 }
-//             }
-//             IloRange newCte = IloRange(expr<=Q);
-//             L_ViolatedCst.push_back(newCte);
-//             //**************************************
-//         }
-//     }
+            //**************************************
+        };
+    };
 };
 
 void find_ViolatedCst(IloEnv env, vector<vector<IloNumVar> >& x, vector<vector<float> > sol,
@@ -320,135 +214,6 @@ list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
     if (DEBUG) cout<<"*********************** Ilo user cut  END **********************"<<endl;
 };
 
-// void find_ViolatedCst(IloEnv env, vector<vector<IloNumVar> >& x, vector<vector<float> > sol,
-// list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
-// //init
-//     bool DEBUG = false;
-    
-//     if (DEBUG) cout<<"*********************** Ilo user cut  BEGIN **********************"<<endl;
-//     // get current solution
-//     int i,j;
-//     int n = x.size();
-//     map<int, float> sommex;
-//     int u,w;
-//     float s_demande,h,hx,gap;
-// //  Greedy randomized algorithm
-//     if (DEBUG) cout<<"*********************** Greedy randomized algorithm  BEGIN **********************"<<endl;
-//     set<int> s,v;
-//     gap = -1;
-//     for (int inits = 1; inits<n; inits++){
-//         s.clear();
-//         s.insert(inits);
-//         for (i=1; i<n; i++) v.insert(i);
-//         // ajouter les noueds de v dans s un par un 
-//         while ( v.size() != 0){
-//             if (DEBUG) cout<<"*********************** add nodes in S  BEGIN **********************"<<endl;
-//             if (DEBUG){
-//                 cout<<" while ing: "<<endl;
-//                 cout<<"S={"; for (auto it = s.begin(); it!=s.end();it++) cout<<*it<<" "; cout<<"}"<<endl;
-//                 cout<<"V={"; for (auto it = v.begin(); it!=v.end();it++) cout<<*it<<" "; cout<<"}"<<endl;
-//             }
-//             sommex.clear();
-//             for (auto it = v.begin(); it != v.end(); it++){
-//                 h = 0;
-//                 for (auto ij = s.begin(); ij != s.end(); ij++){
-//                     //cout<<"sol[*it][*ij]= "<<sol[*it][*ij]; 
-//                     h += sol[*it][*ij];
-//                 };
-//                 if (s.empty()){
-//                     for (auto ij = v.begin(); ij != v.end(); ij++){
-//                         if (DEBUG) cout<<"sol[*it][*ij]= "<<sol[*it][*ij]; 
-//                         h += sol[*it][*ij];
-//                     };    
-//                 }
-//                 sommex[*it] = h;
-//             }
-
-//             if (DEBUG){
-//                 for (auto it = v.begin(); it != v.end(); it++){
-//                     cout<<"<"<<*it<<","<<sommex.find(*it)->second<<">  ";
-//                 }
-//                 cout<<endl;
-//             }
-
-//             // find max h
-//             if (DEBUG) cout<<"*********************** find best node to add in S  BEGIN **********************"<<endl;
-//             u = *(v.begin());
-//             h = sommex.find(u)->second;
-//             for (auto it = v.begin(); it != v.end(); it++){
-//                 if (sommex.find(*it)->second > h){
-//                     u = *it;
-//                     h = sommex.find(*it)->second;
-//                 }
-//             }
-//             if (DEBUG) cout<<"*********************** find best node to add in S  END **********************"<<endl;
-//             // maj
-//             if (DEBUG) cout<<"*********************** MAJ  S and V   BEGIN **********************"<<endl;
-//             s.insert(u);
-//             v.erase(u);
-//             if (DEBUG) cout<<"added node : "<<u<<endl;
-//             if (DEBUG){
-//                 cout<<"S={"; for (auto it = s.begin(); it!=s.end();it++) cout<<*it<<" "; cout<<"}"<<endl;
-//                 cout<<"V={"; for (auto it = v.begin(); it!=v.end();it++) cout<<*it<<" "; cout<<"}"<<endl;
-//             }
-//             if (DEBUG) cout<<"*********************** MAJ  S and V   END **********************"<<endl;
-//             s_demande = 0;
-//             hx = 0;
-//             for (auto ij=s.begin(); ij != s.end(); ij++){
-//                 s_demande += clients[*ij].demande;
-//                 for (auto it=v.begin(); it != v.end(); it++){
-//                     hx += sol[*ij][*it];    
-//                 };
-//             }
-//             // ??? hx>=h/Q
-//             if (hx < h/Q){
-
-//                 if (h/Q-hx > gap){
-//                     if (gap != -1){
-//                         L_ViolatedCst.pop_back();
-//                     };
-//                     gap = h/Q-hx;
-//                 }
-
-//                 if (DEBUG){
-//                     cout<<"S ={ ";
-//                     for (auto it = s.begin(); it!= s.end();it++){
-//                         cout<<*it<<"  ";
-//                     }
-//                     cout<<"}"<<endl;
-//                 }
-//                 // construire IloExpression
-//                 IloExpr expr(env);
-//                 if (DEBUG){
-//                     cout<<"ILoExpr = ";
-//                 }
-//                 for (auto ij=s.begin(); ij != s.end(); ij++){
-//                     for (auto it=v.begin(); it != v.end(); it++){
-//                         expr += x[*ij][*it];    
-//                         if (DEBUG){
-//                             cout<<"x["<<*ij<<"]["<<*it<<"] + ";
-//                         }
-//                     };
-//                     expr += x[*ij][0];
-//                     if (DEBUG){
-//                         cout<<"x["<<*ij<<"]["<< 0 <<"] + ";
-//                     }
-//                 };
-//                 if (DEBUG){
-//                     cout<<endl;
-//                 }
-//                 // construir CST
-//                 IloRange newCte = IloRange(expr >= h/Q);
-//                 L_ViolatedCst.push_back(newCte);
-//                 exit;
-//                 break;
-//             };
-//         }
-//     };
-//     if (DEBUG) cout<<"*********************** Greedy randomized algorithm  END **********************"<<endl;
-
-//     if (DEBUG) cout<<"*********************** Ilo user cut  END **********************"<<endl;
-// };
 
 // Necessary inequalities
 ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation,Instance *, pinstance, vector<vector<IloNumVar> >&, x){
@@ -541,167 +306,6 @@ ILOUSERCUTCALLBACK2(UserCutSeparation,Instance *, pinstance, vector<vector<IloNu
 
 }
 
-// Check if an integer solution (can be obtained by Cplex by heuristic or within a B&B node
-ILOINCUMBENTCALLBACK2(CheckSolFeas, Instance *, pinstance, vector<vector<IloNumVar> >&, x){
-//init 
-     bool DEBUG = false;
-
-    int i,j;
-    int n = x.size();
-    float Q = pinstance->Q;
-    int m = pinstance->m;
-    std::vector<Client> clients = pinstance->get_clients();
-    
-    vector<vector<int> > sol;
-    
-    sol.resize(n);
-    for (i=0; i<n; i++){
-        sol[i].resize(n);
-        for (j=0; j<n; j++){
-            if (i==0 && j==0){
-                continue;
-            }
-            if (getValue(x[i][j])<epsilon){
-                sol[i][j] = 0;
-            }else{
-                sol[i][j] = 1;
-            }
-        };
-    };
-    sol[0][0] = 0; 
-
-// violation sous tour
-
-    // find all nodes which are not connected with 0 
-    set<int> node_not_connected_with_0;
-    //init
-    if (DEBUG) cout<<" \n**********************CheckSolFeas:  INIT  begin**********************\n";
-    for (i=0; i<n; i++){
-        node_not_connected_with_0.insert(i);
-    };
-    if (DEBUG){
-        cout<<"set: ";
-        for (auto it=node_not_connected_with_0.begin(); it != node_not_connected_with_0.end(); it++){
-            cout<<*it <<" ";
-        }
-        cout<<endl;
-        if (DEBUG) cout<<" \n**********************CheckSolFeas:  INIT  end**********************\n";
-    };
-    if (DEBUG) cout<<" \n**********************CheckSolFeas:   ELININATION  begin**********************\n";
-    //elimination of node_connected with 0
-    for (int i=1; i<n; i++){
-        if (sol[0][i] == 1){
-            int city = i; 
-            int nextCity;
-            while (city != 0){
-                node_not_connected_with_0.erase(city);   //city in vehicle k
-                for (int nextCity=0; nextCity<n; nextCity++){
-                    if (sol[city][nextCity] == 1){
-                        city = nextCity;
-                        break;
-                    }
-                };
-            };
-        };
-    };
-    node_not_connected_with_0.erase(0);
-    if (DEBUG){
-        cout<<"set: ";
-        for (auto it=node_not_connected_with_0.begin(); it != node_not_connected_with_0.end(); it++){
-            cout<<*it <<" ";
-        }
-        cout<<endl;
-        if (DEBUG) cout<<" \n**********************CheckSolFeas:   ELININATION  end**********************\n";
-    };
-    // trouver sous tours
-    vector<set<int> > sous_tours;
-    while (node_not_connected_with_0.empty() == false){
-        set<int> tour;
-        int city = *(node_not_connected_with_0.begin());
-        int nextCity;
-        while (node_not_connected_with_0.find(city) != node_not_connected_with_0.end()){
-            node_not_connected_with_0.erase(city);   //city in vehicle k
-            tour.insert(city);
-            for (auto nextCity=node_not_connected_with_0.begin(); nextCity != node_not_connected_with_0.end(); nextCity++){
-                if (sol[city][*nextCity] == 1){
-                    city = *nextCity;
-                    break;
-                }
-            };
-        };
-        sous_tours.push_back(tour);
-    }; 
-
-  if (! sous_tours.empty()){
-    reject();
-    if (DEBUG) cout<<"Solution Reject"<<endl;
-  }
-    
-
-// violation capacite
-
-    // find all nodes which are not connected with 0 
-    if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:  INIT  begin**********************\n";
-    set<int> nodes;
-    for (i=0; i<n; i++){
-        nodes.insert(i);
-    };
-    cout<<"set: ";
-    for (int it:nodes){
-        cout<<it <<" ";
-    }
-    cout<<endl;
-    if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:  INIT  end**********************\n";
-
-    if (DEBUG) cout<<" \n**********************find_ViolatedCst_Integer:   ELININATION  begin**********************\n";
-    // tours
-    vector<set<int> > tours;
-    while (nodes.empty() == false){
-        set<int> tour;
-        int city = *(nodes.begin());
-        int nextCity;
-        while (nodes.find(city) != nodes.end()){
-            nodes.erase(city);   //city in vehicle k
-            tour.insert(city);
-            for (auto nextCity=nodes.begin(); nextCity != nodes.end(); nextCity++){
-                if (sol[city][*nextCity] == 1){
-                    city = *nextCity;
-                    break;
-                }
-            };
-        };
-        tours.push_back(tour);
-    }; 
-
-    for (auto tour:tours){
-        for (int j:tour){
-            if (sol[j][0] == 1){
-                tour.insert(0);
-            }
-        }
-        cout<<"tour ";
-        for (int i:tour){
-            cout<<i<<"  ";
-        }
-        cout<<endl;
-    }  
-    
-    for (auto tour:tours){
-        float somme_capacite = 0;
-        for (int i:tour){
-            somme_capacite += clients[i].demande;
-        }
-        if (somme_capacite > Q){
-            reject();
-            #ifdef OUTPUT
-            cout<<"Solution Reject"<<endl;
-            #endif
-        }
-    }
-
-    if (DEBUG) cout<<"Solution accepted"<<endl;
-
-}
 
 bool Solveur::plne_branch_and_cut(){
 // init
@@ -833,7 +437,6 @@ bool Solveur::plne_branch_and_cut(){
 // ADD CHECK SOLUTION FEASABILITY
     cplex.use(LazyCutSeparation(env,pinstance,x));
     cplex.use(UserCutSeparation(env,pinstance,x));
-    cplex.use(CheckSolFeas(env,pinstance,x));
 //Resolutino
 
     if (DEBUG) std::cout<<" **********************BRANCH AND CUT: solve begin *****************************"<<std::endl;
