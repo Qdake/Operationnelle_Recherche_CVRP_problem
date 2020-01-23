@@ -436,7 +436,7 @@ bool Solveur::plne_branch_and_cut(){
     IloCplex cplex(model);
 // ADD CHECK SOLUTION FEASABILITY
     cplex.use(LazyCutSeparation(env,pinstance,x));
-    cplex.use(UserCutSeparation(env,pinstance,x));
+    //cplex.use(UserCutSeparation(env,pinstance,x));
 //Resolutino
 
     if (DEBUG) std::cout<<" **********************BRANCH AND CUT: solve begin *****************************"<<std::endl;
@@ -454,7 +454,7 @@ bool Solveur::plne_branch_and_cut(){
     env.out()<<"Solution status = " <<cplex.getStatus()<<std::endl;
     env.out()<<"Solution value = " <<cplex.getObjValue()<<std::endl;
 
-    this->psolution = new Solution(n,m);
+    this->psolution = new Solution(n,m,pinstance);
     this->psolution->objValue = cplex.getObjValue();
     this->psolution->status = cplex.getStatus();
     std::vector<int> startCities; 

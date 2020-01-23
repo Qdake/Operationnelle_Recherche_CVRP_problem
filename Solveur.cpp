@@ -7,6 +7,7 @@
 #include "Client.h"
 #include <set>
 using namespace std;
+#define epsilon 0.00001
 #define DEBUG
 
 //destructeur
@@ -144,7 +145,7 @@ bool Solveur::bin_plne_heuristique(){
     env.out()<<"Solution status = " <<cplex.getStatus()<<std::endl;
     env.out()<<"Solution value = " <<cplex.getObjValue()<<std::endl;
 
-    this->psolution = new Solution(n,m);
+    this->psolution = new Solution(n,m,pinstance);
     this->psolution->objValue = cplex.getObjValue();
     this->psolution->status = cplex.getStatus();
     for (int j=0; j<m; j++){
@@ -356,7 +357,7 @@ bool Solveur::bin_plne_min_heuristique(){
     env.out()<<"Solution status = " <<cplex.getStatus()<<std::endl;
     env.out()<<"Solution value = " <<cplex.getObjValue()<<std::endl;
 
-    this->psolution = new Solution(n,m);
+    this->psolution = new Solution(n,m,pinstance);
     this->psolution->objValue = cplex.getObjValue();
     this->psolution->status = cplex.getStatus();
     for (int j=0; j<m; j++){
@@ -556,20 +557,6 @@ bool Solveur::plne_MTZ(){
         CC[nbcst].setName(cstname.str().c_str());
         nbcst += 1;
     };
-    // for (int jt = 1; jt < n ; jt++){
-    //     IloExpr cst(env);
-    //     for (auto it = 0; it<n; it++){
-    //         cst += x[it][jt];
-    //     };
-    //     CC.add(cst <= 1);
-    //     CC.add(cst >= 1);
-    //     std::ostringstream cstname;
-    //     cstname.str("");
-    //     cstname<<"Arc_entrant_a_"<<jt;
-    //     CC[nbcst].setName(cstname.str().c_str());
-    //     CC[nbcst+1].setName(cstname.str().c_str());
-    //     nbcst += 2;
-    // };
 
     //Cst 5 MTZ
     for (int i = 0; i < n; i++){
@@ -616,7 +603,7 @@ bool Solveur::plne_MTZ(){
     env.out()<<"Solution status = " <<cplex.getStatus()<<std::endl;
     env.out()<<"Solution value = " <<cplex.getObjValue()<<std::endl;
 
-    this->psolution = new Solution(n,m);
+    this->psolution = new Solution(n,m,pinstance);
     this->psolution->objValue = cplex.getObjValue();
     this->psolution->status = cplex.getStatus();
     std::vector<int> startCities;
@@ -662,7 +649,7 @@ bool Solveur::plne_MTZ(){
             if (i==0 && j==0){
                 continue;
             }
-            if (cplex.getValue(x[i][j]) == 1){
+            if (cplex.getValue(x[i][j]) > 1-epsilon){
                 psolution->solx[i][j] = 1;
             }
         }

@@ -1,12 +1,17 @@
 #include "Solution.h"
 #include <fstream>
 #include <string>
+#include <sstream>
+#include <iostream>
+#include <iomanip>
 #include <vector>
+#include <climits>
+using namespace::std;
 #define epsilon 0.00001
 //constructeur par defaut
 Solution::Solution(){};
 //constructeur
-Solution::Solution(int n_,int m_):m(m_),n(n_){
+Solution::Solution(int n_,int m_, Instance * pinstance_):m(m_),n(n_),pinstance(pinstance_){
     x.resize(n_);
     for (int i=0; i<n; i++){
         x[i].resize(m_);
@@ -55,6 +60,56 @@ void Solution::visualisation()const{
     file.close();
     system("dot -Tpng cvrp.dot -o cvrp.png");
 }
+void Solution::write_SVG_tour(){
+
+    int i;
+    ostringstream FileName; 
+    FileName.str("");
+    FileName <<"G_tour.svg";
+
+    float dimx=50;
+    float dimy=50;
+    int minx=10000;
+    int miny=10000;
+    int maxy=-100000;
+    int maxx=-100000;
+    for (int i=0; i<n;i++){
+        if (maxx < this->pinstance->clients[i].x) maxx = this->pinstance->clients[i].x;
+        if (maxy < this->pinstance->clients[i].y) maxy = this->pinstance->clients[i].y;
+        if (minx > this->pinstance->clients[i].x) minx = this->pinstance->clients[i].x;
+        if (miny > this->pinstance->clients[i].y) miny = this->pinstance->clients[i].y;
+    };  
+    ofstream fic(FileName.str().c_str());
+
+  fic<<"<html>\n <body>\n <svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.2\"";
+  fic<<" width=\"600\" height=\"600\"";
+  fic<<" viewBox=\""<<-2.0<<" "<<-2.0<<" "<<dimx+7.0<<" "<<dimy+7.0<<"\"";
+  fic<<" preserveAspectRatio=\"yes\">"<<endl;
+  fic<<"<g>"<<endl<<endl;
+
+
+  for (i=0;i<n;i++){
+
+        fic<<"<circle cx=\""<<dimx*(pinstance->clients[i].x-minx)/(maxx-minx)<<"\" cy=\""<<dimy*(pinstance->clients[i].y-miny)/(maxy-miny)<<"\" r=\"2\" stroke=\"0\" stroke-width=\"1\" fill=\"0\" />"<<endl;
+
+  }
+
+  for (int i=0; i<n; i++)
+    for (int j=0;j<n; j++){
+        if (solx[i][j] < epsilon) continue; 
+//    for (it=sol.begin();it!=sol.end();it++){
+        fic<<"<line x1=\""<<dimx*(pinstance->clients[i].x-minx)/(maxx-minx)<<"\"";
+        fic<<" y1=\""<<dimy*(pinstance->clients[i].y-miny)/(maxy-miny)<<"\"";
+        fic<<" x2=\""<<dimx*(pinstance->clients[j].x-minx)/(maxx-minx)<<"\"";
+        fic<<" y2=\""<<dimy*(pinstance->clients[j].y-miny)/(maxy-miny)<<"\"";
+        fic<<" style=\"stroke:rgb(255,0,0);stroke-width:1\" />"<<endl;
+    }
+
+  fic<<endl<<endl<<"</g></svg></body></html>"<<endl;
+  fic.close();
+
+}
+//showpng
 void Solution::showpng()const{
     system("eog cvrp.png");
 }    
