@@ -24,12 +24,28 @@ Solution::Solution(int n_,int m_, Instance * pinstance_):m(m_),n(n_),pinstance(p
 };
 //destructeur
 Solution::~Solution(){};
+
 //affichage
 void Solution::affichage()const{
     for (int j=0; j<m; j++){
         printf("Route #%d:",j+1);
         for (int i=1; i<n; i++){
             (x[i][j] == 1)? printf(" %d",i):true;      
+        };
+        printf("\n");
+    };
+    printf("cost %f \n", this->objValue);
+
+    printf("Q = %f\n", pinstance->Q);
+    for (int j=0; j<m; j++){
+        int s = 0;
+        printf("Route #%d:",j+1);
+        cout<<" somme_demande = ";
+        for (int i=1; i<n; i++){
+            if (x[i][j] == 1){    
+                s+=pinstance->clients[i].demande;
+                printf(" + x[%d][%d].demande(%d, %d) ",i,j,pinstance->clients[i].demande,s);
+            };
         };
         printf("\n");
     };
@@ -67,8 +83,8 @@ void Solution::write_SVG_tour(){
     FileName.str("");
     FileName <<"G_tour.svg";
 
-    float dimx=50;
-    float dimy=50;
+    float dimx=600;
+    float dimy=600;
     int minx=10000;
     int miny=10000;
     int maxy=-100000;
@@ -90,7 +106,7 @@ void Solution::write_SVG_tour(){
 
   for (i=0;i<n;i++){
 
-        fic<<"<circle cx=\""<<dimx*(pinstance->clients[i].x-minx)/(maxx-minx)<<"\" cy=\""<<dimy*(pinstance->clients[i].y-miny)/(maxy-miny)<<"\" r=\"2\" stroke=\"0\" stroke-width=\"1\" fill=\"0\" />"<<endl;
+        fic<<"<circle cx=\""<<dimx*(pinstance->clients[i].x-minx)/(maxx-minx)<<"\" cy=\""<<dimy*(pinstance->clients[i].y-miny)/(maxy-miny)<<"\" r=\"2\" stroke=\"0\" stroke-width=\"2\" fill=\"0\" />"<<endl;
 
   }
 

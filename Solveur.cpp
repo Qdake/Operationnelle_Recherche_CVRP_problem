@@ -473,20 +473,6 @@ bool Solveur::plne_MTZ(){
         nbcst += 1;
     };
 
-    // {
-    //     IloExpr cst(env);
-    //     for (int j=1; j<n; j++){
-    //         cst += x[0][j];
-    //     };
-    //     CC.add(cst<=m);
-    //     CC.add(cst>=m);        
-    //     std::ostringstream cstname;
-    //     cstname.str("");
-    //     cstname<<"Arc_sortant_de_depot";
-    //     CC[nbcst+1].setName(cstname.str().c_str());
-    //     CC[nbcst].setName(cstname.str().c_str());
-    //     nbcst += 2;
-    // };
 
     // Cst 2    Arc_entrant_a_depot
     {
@@ -501,20 +487,6 @@ bool Solveur::plne_MTZ(){
         CC[nbcst].setName(cstname.str().c_str());
         nbcst += 1;
     };
-    // {
-    //     IloExpr cst(env);
-    //     for (int i=1; i<n; i++){
-    //         cst += x[i][0];
-    //     };
-    //     CC.add(cst<=m);
-    //     CC.add(cst>=m);
-    //     std::ostringstream cstname;
-    //     cstname.str("");
-    //     cstname<<"Arc_entrant_a_depot";
-    //     CC[nbcst].setName(cstname.str().c_str());
-    //     CC[nbcst+1].setName(cstname.str().c_str());
-    //     nbcst += 2;
-    // };
 
     // Cst 3  Arc_sortant_de_i   i in NC
     for (int it = 1; it < n; it++){
@@ -529,20 +501,6 @@ bool Solveur::plne_MTZ(){
         CC[nbcst].setName(cstname.str().c_str());
         nbcst += 1;
     };
-    // for (int it = 1; it < n; it++){
-    //     IloExpr cst(env);
-    //     for (int jt = 0; jt < n; jt++){
-    //         cst += x[it][jt];
-    //     };
-    //     CC.add(cst <= 1);
-    //     CC.add(cst >= 1);
-    //     std::ostringstream cstname;
-    //     cstname.str("");
-    //     cstname<<"Arc_sortant_de_"<<it;
-    //     CC[nbcst].setName(cstname.str().c_str());
-    //     CC[nbcst+1].setName(cstname.str().c_str());
-    //     nbcst += 2;
-    // };
 
     // Cst 4  Arc_entrant_a_j   j in NC
     for (int jt = 1; jt < n ; jt++){
@@ -572,6 +530,17 @@ bool Solveur::plne_MTZ(){
             nbcst ++;
         };
     };
+
+    // // CST 6
+    // for (int i=1; i<n; i++){
+    //     for (int j=1; i<n; j++){
+    //         IloExpr cst(env);
+    //         cst += x[i][j];
+    //         cst += x[j][i];
+    //         CC.add(cst<=1);
+    //         nbcst ++;
+    //     }
+    // }
     
     // add Cst
     model.add(CC);
