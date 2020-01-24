@@ -5,6 +5,7 @@
 #include "ilcplex/ilocplex.h"
 #include "Solution.h"
 #include "Client.h"
+#include "math.h"
 #include <set>
 using namespace std;
 #define epsilon 0.00001
@@ -55,18 +56,14 @@ bool Solveur::solve(){
 };
 
 bool Solveur::bin_plne_heuristique(){
-////////////////////////
-////   INIT
-////////////////////////
+//   INIT
     int n = this->pinstance->get_n();  // nb client
     int m = this->pinstance->get_m();   // nb vehicle
     int Q = this->pinstance->get_Q();
     std::vector<Client> clients = this->pinstance->get_clients();
-
+    std::vector<std::vector<float> > distance = this->pinstance->distance;
     IloEnv env;
-////////////////////////////////
-///   MODEL
-/////////////////////////////////
+//   MODEL
     IloModel model(env);
     ///////////////////////
     /////  Var
@@ -95,26 +92,25 @@ bool Solveur::bin_plne_heuristique(){
             cst += x[i][j]*clients[i].demande;
         CC.add(cst<=Q);
         
-        std::ostringstream cstname;
-        cstname.str("");
-        cstname<<"Cst_capacity_car_"<<j;
-        CC[nbcst].setName(cstname.str().c_str());
-        nbcst++;
+        // std::ostringstream cstname;
+        // cstname.str("");
+        // cstname<<"Cst_capacity_car_"<<j;
+        // CC[nbcst].setName(cstname.str().c_str());
+        // nbcst++;
     };
     // Cst :  sum(x_i_j,j=1..k)==1     for i in 1..n
     for (int i=0; i<n; i++){
         IloExpr cst(env);
         for (int j=0; j<m; j++)
             cst += x[i][j];
-        CC.add(cst<=1);
-        CC.add(cst>=1);
+        CC.add(cst==1);
 
-        std::ostringstream cstname;
-        cstname.str("");
-        cstname<<"Cst_x_"<<i<<"_*";
-        CC[nbcst].setName(cstname.str().c_str());
-        CC[nbcst+1].setName(cstname.str().c_str());
-        nbcst += 2;
+        // std::ostringstream cstname;
+        // cstname.str("");
+        // cstname<<"Cst_x_"<<i<<"_*";
+        // CC[nbcst].setName(cstname.str().c_str());
+        // CC[nbcst+1].setName(cstname.str().c_str());
+        // nbcst += 2;
     };
     // add Cst
     model.add(CC);
@@ -128,9 +124,7 @@ bool Solveur::bin_plne_heuristique(){
             obj.setLinearCoef(x[i][j],0);
 
 
-//////////////////////////////////
-///////  Resolution
-/////////////////////////////////
+//  Resolution
     IloCplex cplex(model);
 
     cplex.exportModel("sortie.lp");
@@ -139,9 +133,8 @@ bool Solveur::bin_plne_heuristique(){
        return false;
     };
 
-////////////////////////////////////
-//////// get solution
-////////////////////////////////////
+
+// Interprétation de la solution de PLNE
     env.out()<<"Solution status = " <<cplex.getStatus()<<std::endl;
     env.out()<<"Solution value = " <<cplex.getObjValue()<<std::endl;
 
@@ -157,19 +150,42 @@ bool Solveur::bin_plne_heuristique(){
         };
     };
 
-////////////////////////////////
-///// cplex end
-///////////////////////////////
+    ////////////////////////////////
+    ///// cplex end
+    ///////////////////////////////
 
     env.end();
 
 
-///////////////////////////////////////////////////
+// Heuristique: glouton
+    // init    psolution->solx
+    for (int i=0;i<n;i++)
+        for (int j=0;j<n;j++)
+            psolution->solx[i][j] = 0;
 
- //    TO DO : HEURISTIQUE
-
-
-
+    for (int i=0; i<m; i++){
+        set<int> nodes;
+        for (int j=0; j<n; j++){
+            if (psolution->x[j][i] == 1){
+                nodes.insert(j);
+            }
+        }
+        int j = 0;
+        while (nodes.empty() == false){
+            int temp;
+            float m = 10000000000000;
+            for (int k:nodes){
+                if (distance[j][k]<m){
+                    temp = k;
+                    m = distance[j][k];
+                };
+            };
+            psolution->solx[j][temp] = 1;
+            nodes.erase(temp);
+            j = temp;
+        }
+        psolution->solx[j][0] = 1;
+    }
     return true;
 };
 
@@ -230,9 +246,7 @@ bool Solveur::bin_glouton_heuristique(){
 
 
 bool Solveur::bin_plne_min_heuristique(){
-////////////////////////
-////   INIT
-////////////////////////
+//   INIT
     int n = this->pinstance->get_n();  // nb client
     int m = this->pinstance->get_m();   // nb vehicle
     int Q = this->pinstance->get_Q();
@@ -240,9 +254,8 @@ bool Solveur::bin_plne_min_heuristique(){
 
     IloEnv env;
 
-////////////////////////////////
-///   MODEL
-/////////////////////////////////
+
+//   MODEL
     IloModel model(env);
     ///////////////////////
     /////  Var
@@ -340,9 +353,8 @@ bool Solveur::bin_plne_min_heuristique(){
     for (int j=0; j<m; j++)
         obj.setLinearCoef(y[j],1);
 
-//////////////////////////////////
-///////  Resolution
-/////////////////////////////////
+
+//  Resolution
     IloCplex cplex(model);
 
     cplex.exportModel("sortie.lp");
@@ -351,9 +363,8 @@ bool Solveur::bin_plne_min_heuristique(){
        return false;
     };
 
-//////////////////////////////////
-////// get solution
-//////////////////////////////////
+
+// Interpretation de la solution de PLNE
     env.out()<<"Solution status = " <<cplex.getStatus()<<std::endl;
     env.out()<<"Solution value = " <<cplex.getObjValue()<<std::endl;
 
@@ -369,32 +380,14 @@ bool Solveur::bin_plne_min_heuristique(){
         };
     };
     
-
-////////////////////////////////
-///// cplex end
-///////////////////////////////
+    // cplex end
     env.end();
 
 
-//////////////////////////////////////////////////////////////
 
-    // TO DO: HEURISTIQUE
+// TO DO: HEURISTIQUE
     return true;
 };
-
-
-// bool Solveur::plne_branch_and_cut(){
-//     // TO DO
-//     std::cout<<"plne branch and cut"<<std::endl;
-//     return true;
-// }
-
-
-
-
-
-
-#include "math.h"
 
 bool Solveur::plne_MTZ(){
 // init
@@ -412,7 +405,9 @@ bool Solveur::plne_MTZ(){
 //model
     IloEnv   env;
     IloModel model(env);
-//var
+    ////////////////////////////
+    // VAR
+    ////////////////////////
     // x[i][j]   i,j in {0,...n-1}  l'arc (i,j) est utilise ou non
     std::vector<std::vector<IloNumVar> > x;
     x.resize(n);  
@@ -452,9 +447,9 @@ bool Solveur::plne_MTZ(){
         w[i].setName(varname.str().c_str());
     };
 
-    //std::cout<<"partie var correcte"<<std::endl;
-
-//cst
+    ////////////////////////////////////////////////
+    //cst
+    /////////////////////////////////////////
     IloRangeArray CC(env);
     int nbcst=0;
 
@@ -545,7 +540,7 @@ bool Solveur::plne_MTZ(){
     // add Cst
     model.add(CC);
 
-//obj
+    //obj
 
     // x
     IloObjective obj=IloAdd(model,IloMinimize(env,0.0));
@@ -557,7 +552,7 @@ bool Solveur::plne_MTZ(){
 
 
     std::cout<<" **********************set obj *****************************"<<std::endl;
-//Resolutino
+    //Resolutino
     IloCplex cplex(model);
 
     cplex.exportModel("./sortie.lp");
@@ -567,7 +562,7 @@ bool Solveur::plne_MTZ(){
        return false;
     };
     std::cout<<" ****************************** solve *****************************"<<std::endl;
-// Get solution
+// Interpretation de la solution de PLNE
 
     env.out()<<"Solution status = " <<cplex.getStatus()<<std::endl;
     env.out()<<"Solution value = " <<cplex.getObjValue()<<std::endl;
@@ -576,10 +571,7 @@ bool Solveur::plne_MTZ(){
     this->psolution->objValue = cplex.getObjValue();
     this->psolution->status = cplex.getStatus();
     std::vector<int> startCities;
-    std::cout<<" **********************   traduction de lasolution phase init *****************************"<<std::endl;
-//    std::cout<<"x.size() = "<<x.size()<<" x[0].size() = "<<x[0].size()<<std::endl;
-    
-    ////TO DEBUG : pourquoi ne peut pas afficher x[0][0]
+    std::cout<<" **********************   traduction de lasolution phase init *****************************"<<std::endl;    
 
     for (int i=0; i<n; i++){
         for (int j=0; j<m; j++){

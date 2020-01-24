@@ -49,7 +49,12 @@ void Solution::affichage()const{
         };
         printf("\n");
     };
-    printf("cost %f \n", this->objValue);
+
+    float somme = 0;
+    for (int i=0; i<n; i++)
+        for (int j=0; j<n; j++)
+            somme += pinstance->distance[i][j] * solx[i][j];
+    cout<<"cout "<<setprecision(3)<<somme;
 };
 void Solution::visualisation()const{
     std::ofstream file;
@@ -71,17 +76,17 @@ void Solution::visualisation()const{
         }
     }
     dot += "}";
-    file.open("cvrp.dot",std::fstream::out);
+    file.open("cvrp_solution.dot",std::fstream::out);
     file<<dot;
     file.close();
-    system("dot -Tpng cvrp.dot -o cvrp.png");
+    system("dot -Tpng cvrp_solution.dot -o cvrp_solution.png");
 }
 void Solution::write_SVG_tour(){
 
     int i;
     ostringstream FileName; 
     FileName.str("");
-    FileName <<"G_tour.svg";
+    FileName <<"CVRP_solution.svg";
 
     float dimx=600;
     float dimy=600;

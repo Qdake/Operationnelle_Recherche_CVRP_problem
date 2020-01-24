@@ -77,6 +77,7 @@ list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
             }
             IloRange newCte = IloRange(expr >= ceil(float(somme_demande)/float(Q)));
             L_ViolatedCst.push_back(newCte);
+            //return;
             //**************************************
         };
     };
@@ -124,6 +125,7 @@ list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
         };
         IloRange newCte = IloRange(expr >= ceil(float(somme_demande)/float(Q)));
         L_ViolatedCst.push_back(newCte);
+        //return;
     };
 
 };
@@ -178,7 +180,7 @@ list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
         u = *(v.begin());
         h = sommex.find(u)->second;
         for (auto it = v.begin(); it != v.end(); it++){
-            if (sommex.find(*it)->second > h){
+            if (sommex.find(*it)->second < h){
                 u = *it;
                 h = sommex.find(*it)->second;
             }
@@ -234,7 +236,6 @@ list<IloRange>& L_ViolatedCst,  vector<Client>& clients,float Q,int m){
             // construir CST
             IloRange newCte = IloRange(expr >= h/Q);
             L_ViolatedCst.push_back(newCte);
-            exit;
             break;
         };
     };
@@ -289,11 +290,11 @@ ILOLAZYCONSTRAINTCALLBACK2(LazyCutSeparation,Instance *, pinstance, vector<vecto
 };
 
 
-// Usefull inequalities (here are the same as the necessary ones
+//Usefull inequalities (here are the same as the necessary ones
 ILOUSERCUTCALLBACK2(UserCutSeparation,Instance *, pinstance, vector<vector<IloNumVar> >&, x){
 //init
     bool DEBUG = false;
-    cout<<"\n******************* User Separation Callback   BEGIN*************\n"<<endl;
+    if (DEBUG) cout<<"\n******************* User Separation Callback   BEGIN*************\n"<<endl;
     float Q = pinstance->get_Q();
     int m = pinstance->m;
     std::vector<Client> clients = pinstance->get_clients();
@@ -321,12 +322,12 @@ ILOUSERCUTCALLBACK2(UserCutSeparation,Instance *, pinstance, vector<vector<IloNu
   if (L_ViolatedCst.empty()) cout<<"No Cst found"<<endl;
   
   while (!L_ViolatedCst.empty()){
-      cout << "Adding constraint : " << L_ViolatedCst.front() << endl;
-    add(L_ViolatedCst.front(),IloCplex::UseCutForce); //UseCutPurge);
+    if (DEBUG)  cout << "Adding constraint : " << L_ViolatedCst.front() << endl;
+    if (DEBUG)  add(L_ViolatedCst.front(),IloCplex::UseCutForce); //UseCutPurge);
     L_ViolatedCst.pop_front();
   }
 
-    cout<<"\n******************* User Separation Callback   END*************\n"<<endl;
+    if (DEBUG) cout<<"\n******************* User Separation Callback   END*************\n"<<endl;
 
 }
 
@@ -471,7 +472,7 @@ bool Solveur::plne_branch_and_cut(){
     IloCplex cplex(model);
 // ADD CHECK SOLUTION FEASABILITY
     cplex.use(LazyCutSeparation(env,pinstance,x));
-    //cplex.use(UserCutSeparation(env,pinstance,x));
+    cplex.use(UserCutSeparation(env,pinstance,x));
 //Resolutino
 
     if (DEBUG) std::cout<<" **********************BRANCH AND CUT: solve begin *****************************"<<std::endl;

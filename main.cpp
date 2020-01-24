@@ -5,6 +5,7 @@
 #include "Solution.h"
 #include "Solveur.h"
 #include <string>
+#include <iomanip>
 using namespace std;
 void afficher(vector<Client>& clients){
     for (int i=0; i<clients.size();i++){
@@ -20,14 +21,31 @@ int main(){
     cout<<" TEST Instance "<<endl;
     Instance instance;
     string path;
-    //instance.read_file("./test2.data");
     //instance.read_file("./instance/Vrp-Set-P/P/P-n16-k8.vrp");
     //instance.read_file("./instance/Vrp-Set-P/P/P-n19-k2.vrp");
-    //instance.read_file("./instance/Vrp-Set-P/P/P-n22-k8.vrp");
-    instance.read_file("./instance/Vrp-Set-P/P/P-n23-k8.vrp");
+    instance.read_file("./instance/Vrp-Set-P/P/P-n22-k8.vrp");
+    //instance.read_file("./instance/Vrp-Set-P/P/P-n23-k8.vrp");
+    //instance.read_file("./instance/Vrp-Set-P/P/P-n40-k5.vrp");
 
     instance.afficher();
 
+////////////////////////////////////
+///// test Solveur  bin_plne_gloton
+////////////////////////////////
+    // cout<<"\n\n TEST Solveur  bin_plne_gloton   bin_plne_gloton   bin_plne_gloton \n\n"<<endl;
+    // time_t start,end;
+    // time(&start);
+    // Solveur solver;
+    // solver.set_instance( & instance);
+    // bool flag;
+    // solver.set_method("bin_plne_heuristique");
+    // flag = solver.solve();
+    // cout<<"\n********************main \n \n \n"<<endl;
+    // if (flag){
+    //     solver.psolution->affichage();
+    // };      
+    // time(&end);
+    // cout<< "TIME : "<<setprecision(6)<<double(end - start)<<endl;
 ////////////////////////////////////
 ///// test Solveur  MTZ
 ////////////////////////////////
@@ -41,8 +59,6 @@ int main(){
     // if (flag){
     //    solver.psolution->affichage();
     // };
-    // solver.psolution->visualisation();
-    // solver.psolution->showpng();
 
 ////////////////////////////////////
 ///// test Solveur  Branch and cut
@@ -61,7 +77,7 @@ int main(){
     cout<< "\n branch and cut  fin fin fin \n";
     
     
-    
+///////////////////////  VISUALISATION /////////////
     solver.psolution->write_SVG_tour();
     return 0;
 };
