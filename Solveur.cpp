@@ -196,33 +196,33 @@ bool comparator(const Client& client1,const Client& client2){
 bool first_fit_decreasing(){
     // TO DO: DEBUG
 
-//     int n = this->pinstance->get_n();  // nb client
-//     int m = this->pinstance->get_m();   // nb vehicle
-//     int Q = this->pinstance->get_Q();
-//     std::vector<Client> clients = this->pinstance->get_clients();
-//     std::vector<int> cars_load;
+    //     int n = this->pinstance->get_n();  // nb client
+    //     int m = this->pinstance->get_m();   // nb vehicle
+    //     int Q = this->pinstance->get_Q();
+    //     std::vector<Client> clients = this->pinstance->get_clients();
+    //     std::vector<int> cars_load;
 
-//     cars_load.resize(m,0);
-//     std::sort(clients.begin(),clients.end(),comparator);
-// TO DO TO DO TO DO
-//         #ifdef DEBUG
-//             for (auto i:clients)
-//                 std::cout<<i<<" ";
-//             std::cout<<std::endl;
-//         #endif
+    //     cars_load.resize(m,0);
+    //     std::sort(clients.begin(),clients.end(),comparator);
+    // TO DO TO DO TO DO
+    //         #ifdef DEBUG
+    //             for (auto i:clients)
+    //                 std::cout<<i<<" ";
+    //             std::cout<<std::endl;
+    //         #endif
 
-//         for (Client& client:clients){
-//             bool success{false};
-//             for (Car& car:cars){
-//                 success = car.add_client(client);
-//                 if (success)
-//                     break;
-//             };
-//             if (!success)
-//                 return false;
-//         };
-//         return true;
-//     }
+    //         for (Client& client:clients){
+    //             bool success{false};
+    //             for (Car& car:cars){
+    //                 success = car.add_client(client);
+    //                 if (success)
+    //                     break;
+    //             };
+    //             if (!success)
+    //                 return false;
+    //         };
+    //         return true;
+    //     }
     return true;
 };
 
@@ -412,19 +412,6 @@ bool Solveur::plne_MTZ(){
     std::vector<std::vector<IloNumVar> > x;
     x.resize(n);  
 
-    // for (int i=0; i<n; i++){
-    //     x[i].resize(n);
-    // }            
-    // for (int i=0; i<n; i++){
-    //     std::ostringstream varname;
-    //     for (int j=i; j<n; j++){
-    //         x[i][j]=IloNumVar(env, 0.0, 1.0, ILOINT);
-    //         varname.str("");
-    //         varname<<"x["<<i<<"]["<<j<<"]";
-    //         x[i][j].setName(varname.str().c_str());
-    //         x[j][i]=x[i][j];
-    //     };
-    // };
     for (int i=0; i<n; i++){
         x[i].resize(n);
         std::ostringstream varname;
@@ -583,11 +570,10 @@ bool Solveur::plne_MTZ(){
         if (cplex.getValue(x[0][i]) == 1){
             std::cout<<std::endl;
             k++;
-//            std::cout<<k <<": ";
             int city = i; 
             int nextCity;
             while (city != 0){
-//                std::cout<<city<<"  ";
+            
                 this->psolution->x[city][k] = 1;   //city in vehicle k
                 for (int nextCity=0; nextCity<n; nextCity++){
                     if (cplex.getValue(x[city][nextCity]) == 1){

@@ -473,11 +473,16 @@ bool Solveur::plne_branch_and_cut(){
 // ADD CHECK SOLUTION FEASABILITY
     cplex.use(LazyCutSeparation(env,pinstance,x));
     cplex.use(UserCutSeparation(env,pinstance,x));
-//Resolutino
+//export model
 
     if (DEBUG) std::cout<<" **********************BRANCH AND CUT: solve begin *****************************"<<std::endl;
     cplex.exportModel("./sortie.lp");
     
+
+
+
+
+// resolution
     if ( !cplex.solve()){
         std::cout<<"pas de solution"<<std::endl;
        return false;
